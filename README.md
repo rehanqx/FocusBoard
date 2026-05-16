@@ -38,7 +38,7 @@
 
 <div align="center">
 
-![Landing](FocusBoard.png)
+![Landing](landing.png)
 
 </div>
 
