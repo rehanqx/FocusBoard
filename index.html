@@ -1,0 +1,1962 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FocusBoard</title>
+    <meta name="theme-color" content="#f5a623">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="FocusBoard">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        :root {
+            --amber: #f5a623;
+            --amber-deep: #c97d10;
+            --amber-light: #ffd580;
+            --amber-glow: rgba(245, 166, 35, 0.15);
+            --bg: #0f0c00;
+            --bg2: #1a1400;
+            --bg3: #241c00;
+            --glass: rgba(255, 255, 255, 0.07);
+            --glass2: rgba(255, 255, 255, 0.04);
+            --gb: rgba(255, 200, 80, 0.15);
+            --gb2: rgba(255, 200, 80, 0.08);
+            --text: #fff8e8;
+            --text2: rgba(255, 248, 232, 0.6);
+            --text3: rgba(255, 248, 232, 0.35);
+            --red: #ff5c5c;
+            --green: #4caf50;
+            --blue: #4fa3e8;
+            --purple: #b06ee0;
+            --r: 14px;
+            --r2: 10px;
+            --r3: 8px;
+            --shadow: 0 8px 40px rgba(0, 0, 0, 0.5);
+        }
+
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0
+        }
+
+        html {
+            scroll-behavior: smooth
+        }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden
+        }
+
+        .bg-layer {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            background: radial-gradient(ellipse 70% 50% at 15% 25%, rgba(180, 110, 0, 0.13) 0%, transparent 70%),
+                radial-gradient(ellipse 50% 60% at 85% 75%, rgba(150, 90, 0, 0.1) 0%, transparent 70%),
+                linear-gradient(160deg, #0f0c00 0%, #1a1400 50%, #0a0800 100%)
+        }
+
+        .noise {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            opacity: .025;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+            background-size: 256px 256px
+        }
+
+        #pg-landing,
+        #pg-board,
+        #pg-focus {
+            position: relative;
+            z-index: 1
+        }
+
+        #pg-board {
+            display: none;
+            padding: 28px 20px 80px;
+            min-height: 100vh
+        }
+
+        #pg-focus {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 200;
+            background: var(--bg);
+            align-items: center;
+            justify-content: center;
+            flex-direction: column
+        }
+
+        #pg-landing {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 60px 20px 120px;
+            text-align: center;
+            gap: 0
+        }
+
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(28px)
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0)
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0
+            }
+
+            to {
+                opacity: 1
+            }
+        }
+
+        /* ══ PWA INSTALL BANNER ══ */
+        #pwa-banner {
+            display: none;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 9999;
+            background: #181200;
+            border-top: 1px solid rgba(245, 166, 35, 0.35);
+            padding: 14px 20px;
+            align-items: center;
+            gap: 14px;
+            font-family: 'DM Sans', sans-serif;
+            animation: slideUp .4s ease both;
+        }
+
+        #pwa-banner.show {
+            display: flex
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(100%)
+            }
+
+            to {
+                transform: translateY(0)
+            }
+        }
+
+        .pwa-app-icon {
+            width: 52px;
+            height: 52px;
+            border-radius: 12px;
+            flex-shrink: 0;
+            background: linear-gradient(135deg, #f5a623, #c97d10);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 26px;
+            box-shadow: 0 4px 16px rgba(245, 166, 35, 0.4);
+        }
+
+        .pwa-info {
+            flex: 1;
+            min-width: 0
+        }
+
+        .pwa-title {
+            font-size: .9rem;
+            font-weight: 600;
+            color: #fff8e8;
+            margin-bottom: 2px
+        }
+
+        .pwa-sub {
+            font-size: .72rem;
+            color: rgba(255, 248, 232, 0.45);
+        }
+
+        .pwa-stars {
+            color: #f5a623;
+            font-size: .65rem;
+            margin-bottom: 1px;
+            letter-spacing: 1px
+        }
+
+        .pwa-btns {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-shrink: 0
+        }
+
+        .pwa-install-btn {
+            background: linear-gradient(135deg, var(--amber), var(--amber-deep));
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 20px;
+            font-size: .82rem;
+            font-weight: 700;
+            cursor: pointer;
+            white-space: nowrap;
+            font-family: 'DM Sans', sans-serif;
+            transition: opacity .2s, transform .15s;
+        }
+
+        .pwa-install-btn:hover {
+            opacity: .88;
+            transform: scale(1.03)
+        }
+
+        .pwa-dismiss-btn {
+            background: rgba(255, 255, 255, .06);
+            border: 1px solid rgba(255, 255, 255, .1);
+            color: rgba(255, 248, 232, .4);
+            border-radius: 6px;
+            width: 30px;
+            height: 30px;
+            display: grid;
+            place-content: center;
+            font-size: .9rem;
+            cursor: pointer;
+            transition: background .2s;
+        }
+
+        .pwa-dismiss-btn:hover {
+            background: rgba(255, 255, 255, .1);
+            color: rgba(255, 248, 232, .7)
+        }
+
+        /* iPhone install hint (for iOS Safari which doesn't support beforeinstallprompt) */
+        #ios-hint {
+            display: none;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 9999;
+            background: #181200;
+            border-top: 1px solid rgba(245, 166, 35, 0.35);
+            padding: 16px 20px;
+            font-family: 'DM Sans', sans-serif;
+            animation: slideUp .4s ease both;
+        }
+
+        #ios-hint.show {
+            display: block
+        }
+
+        .ios-hint-inner {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px
+        }
+
+        .ios-hint-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #f5a623, #c97d10);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            flex-shrink: 0
+        }
+
+        .ios-hint-text {
+            flex: 1
+        }
+
+        .ios-hint-title {
+            font-size: .88rem;
+            font-weight: 600;
+            color: #fff8e8;
+            margin-bottom: 4px
+        }
+
+        .ios-hint-desc {
+            font-size: .72rem;
+            color: rgba(255, 248, 232, .5);
+            line-height: 1.5
+        }
+
+        .ios-hint-desc b {
+            color: rgba(255, 248, 232, .8)
+        }
+
+        .ios-arrow {
+            text-align: center;
+            margin-top: 10px;
+            color: var(--amber);
+            font-size: .72rem;
+            letter-spacing: 1px
+        }
+
+        .ios-dismiss {
+            position: absolute;
+            top: 14px;
+            right: 16px;
+            background: none;
+            border: none;
+            color: rgba(255, 248, 232, .3);
+            font-size: 1.1rem;
+            cursor: pointer
+        }
+
+        /* ══ LANDING ══ */
+        .land-logo {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(2.8rem, 8vw, 5rem);
+            font-weight: 900;
+            color: var(--amber);
+            text-shadow: 0 0 80px rgba(245, 166, 35, 0.3);
+            animation: fadeUp .7s ease both;
+            letter-spacing: 2px
+        }
+
+        .land-sub {
+            font-size: clamp(.75rem, 2vw, .9rem);
+            color: var(--text2);
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            margin-top: 10px;
+            margin-bottom: 50px;
+            animation: fadeUp .7s .1s ease both
+        }
+
+        .b-header {
+            width: 100%;
+            max-width: 1300px;
+            margin: 0 auto 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px
+        }
+
+        .b-logo {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.4rem;
+            font-weight: 900;
+            color: var(--amber);
+            cursor: pointer;
+            transition: opacity .2s
+        }
+
+        .b-logo:hover {
+            opacity: .8
+        }
+
+        .b-logo span {
+            display: block;
+            font-size: .72rem;
+            font-family: 'DM Sans', sans-serif;
+            font-weight: 400;
+            color: var(--text2);
+            margin-top: 1px
+        }
+
+        .h-actions {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap
+        }
+
+        .streak-badge {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 7px 14px;
+            border-radius: 30px;
+            background: rgba(255, 166, 35, .12);
+            border: 1px solid rgba(255, 166, 35, .25);
+            font-size: .8rem;
+            font-weight: 600;
+            color: var(--amber)
+        }
+
+        .btn-sm {
+            padding: 7px 15px;
+            border-radius: var(--r3);
+            border: 1px solid var(--gb2);
+            background: var(--glass);
+            color: var(--text);
+            font-family: 'DM Sans', sans-serif;
+            font-size: .78rem;
+            cursor: pointer;
+            transition: background .2s, border-color .2s;
+            backdrop-filter: blur(6px)
+        }
+
+        .btn-sm:hover {
+            background: rgba(255, 200, 80, .1);
+            border-color: var(--amber)
+        }
+
+        .btn-add {
+            background: linear-gradient(135deg, var(--amber), var(--amber-deep));
+            border: none;
+            color: #fff;
+            font-weight: 600
+        }
+
+        .btn-add:hover {
+            opacity: .88;
+            background: linear-gradient(135deg, var(--amber), var(--amber-deep))
+        }
+
+        .stats-row {
+            width: 100%;
+            max-width: 1300px;
+            margin: 0 auto 18px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+            gap: 10px
+        }
+
+        .stat-card {
+            background: var(--glass2);
+            border: 1px solid var(--gb2);
+            border-radius: var(--r2);
+            padding: 12px 14px
+        }
+
+        .stat-label {
+            font-size: .68rem;
+            color: var(--text3);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 4px
+        }
+
+        .stat-val {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--amber);
+            font-family: 'Playfair Display', serif
+        }
+
+        .stat-sub {
+            font-size: .68rem;
+            color: var(--text3);
+            margin-top: 2px
+        }
+
+        .prog-wrap {
+            width: 100%;
+            max-width: 1300px;
+            margin: 0 auto 24px
+        }
+
+        .prog-top {
+            display: flex;
+            justify-content: space-between;
+            font-size: .72rem;
+            color: var(--text3);
+            margin-bottom: 5px
+        }
+
+        .prog-bar {
+            height: 5px;
+            background: rgba(255, 255, 255, .07);
+            border-radius: 50px;
+            overflow: hidden
+        }
+
+        .prog-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--amber), #ff9c00);
+            border-radius: 50px;
+            transition: width .6s cubic-bezier(.4, 0, .2, 1)
+        }
+
+        .pomo-bar {
+            width: 100%;
+            max-width: 1300px;
+            margin: 0 auto 20px;
+            background: var(--glass2);
+            border: 1px solid var(--gb2);
+            border-radius: var(--r);
+            padding: 14px 20px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap
+        }
+
+        .pomo-timer {
+            font-family: 'Playfair Display', serif;
+            font-size: 2rem;
+            font-weight: 900;
+            color: var(--amber);
+            min-width: 80px;
+            text-shadow: 0 0 20px rgba(245, 166, 35, .3)
+        }
+
+        .pomo-timer.break {
+            color: var(--green)
+        }
+
+        .pomo-status {
+            font-size: .72rem;
+            color: var(--text2);
+            text-transform: uppercase;
+            letter-spacing: 1px
+        }
+
+        .pomo-task-name {
+            font-size: .8rem;
+            color: var(--amber-light);
+            font-style: italic;
+            flex: 1;
+            min-width: 120px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis
+        }
+
+        .pomo-btns {
+            display: flex;
+            gap: 8px;
+            margin-left: auto
+        }
+
+        .pomo-circles {
+            display: flex;
+            gap: 5px;
+            align-items: center
+        }
+
+        .pomo-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, .15);
+            transition: background .3s
+        }
+
+        .pomo-dot.done {
+            background: var(--amber)
+        }
+
+        .pomo-ring {
+            position: relative;
+            width: 42px;
+            height: 42px
+        }
+
+        .pomo-ring svg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            transform: rotate(-90deg)
+        }
+
+        .pomo-ring circle {
+            fill: none;
+            stroke-width: 3
+        }
+
+        .pomo-ring .bg-c {
+            stroke: rgba(255, 255, 255, .1)
+        }
+
+        .pomo-ring .fg-c {
+            stroke: var(--amber);
+            stroke-linecap: round;
+            transition: stroke-dashoffset .5s linear
+        }
+
+        .kanban {
+            width: 100%;
+            max-width: 1300px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 14px
+        }
+
+        @media(max-width:960px) {
+            .kanban {
+                grid-template-columns: repeat(2, 1fr)
+            }
+        }
+
+        @media(max-width:560px) {
+            .kanban {
+                grid-template-columns: 1fr
+            }
+        }
+
+        .col-wrap {
+            display: flex;
+            flex-direction: column;
+            gap: 10px
+        }
+
+        .col-hd {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 9px 13px;
+            border-radius: var(--r2);
+            font-weight: 600;
+            font-size: .72rem;
+            letter-spacing: 1.2px;
+            text-transform: uppercase
+        }
+
+        .badge {
+            padding: 2px 8px;
+            border-radius: 20px;
+            font-size: .66rem;
+            font-weight: 700;
+            background: rgba(0, 0, 0, .3)
+        }
+
+        .col-todo .col-hd {
+            background: rgba(245, 166, 35, .15);
+            color: var(--amber)
+        }
+
+        .col-prog .col-hd {
+            background: rgba(79, 163, 232, .13);
+            color: var(--blue)
+        }
+
+        .col-review .col-hd {
+            background: rgba(176, 110, 224, .13);
+            color: var(--purple)
+        }
+
+        .col-done .col-hd {
+            background: rgba(76, 175, 80, .12);
+            color: var(--green)
+        }
+
+        .cards-list {
+            display: flex;
+            flex-direction: column;
+            gap: 9px;
+            min-height: 70px;
+            padding: 3px 0;
+            transition: background .2s;
+            border-radius: var(--r2)
+        }
+
+        .cards-list.drag-over {
+            background: rgba(245, 166, 35, .07)
+        }
+
+        .task-card {
+            background: var(--glass);
+            border: 1px solid var(--gb2);
+            border-radius: var(--r2);
+            padding: 13px;
+            cursor: grab;
+            transition: transform .2s, box-shadow .2s, opacity .15s;
+            position: relative;
+            animation: cardIn .3s ease both;
+            backdrop-filter: blur(8px)
+        }
+
+        @keyframes cardIn {
+            from {
+                opacity: 0;
+                transform: translateY(8px) scale(.97)
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1)
+            }
+        }
+
+        .task-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, .4)
+        }
+
+        .task-card.dragging {
+            opacity: .35;
+            cursor: grabbing
+        }
+
+        .task-card.pri-high {
+            border-left: 3px solid var(--red)
+        }
+
+        .task-card.pri-med {
+            border-left: 3px solid var(--amber)
+        }
+
+        .task-card.pri-low {
+            border-left: 3px solid var(--blue)
+        }
+
+        .card-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 7px
+        }
+
+        .card-icon-wrap {
+            width: 26px;
+            height: 26px;
+            border-radius: 6px;
+            display: grid;
+            place-content: center;
+            font-size: .75rem
+        }
+
+        .col-todo .card-icon-wrap {
+            background: rgba(245, 166, 35, .18);
+            color: var(--amber)
+        }
+
+        .col-prog .card-icon-wrap {
+            background: rgba(79, 163, 232, .18);
+            color: var(--blue)
+        }
+
+        .col-review .card-icon-wrap {
+            background: rgba(176, 110, 224, .18);
+            color: var(--purple)
+        }
+
+        .col-done .card-icon-wrap {
+            background: rgba(76, 175, 80, .18);
+            color: var(--green)
+        }
+
+        .pri-tag {
+            font-size: .6rem;
+            padding: 2px 7px;
+            border-radius: 20px;
+            font-weight: 700;
+            letter-spacing: .5px
+        }
+
+        .pri-high .pri-tag {
+            background: rgba(255, 92, 92, .18);
+            color: #ff8080
+        }
+
+        .pri-med .pri-tag {
+            background: rgba(245, 166, 35, .18);
+            color: var(--amber)
+        }
+
+        .pri-low .pri-tag {
+            background: rgba(79, 163, 232, .18);
+            color: var(--blue)
+        }
+
+        .card-title {
+            font-size: .85rem;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 3px;
+            line-height: 1.4
+        }
+
+        .card-desc {
+            font-size: .72rem;
+            color: var(--text2);
+            line-height: 1.5;
+            margin-bottom: 8px
+        }
+
+        .card-notes-preview {
+            font-size: .68rem;
+            color: var(--text3);
+            font-style: italic;
+            border-left: 2px solid var(--gb);
+            padding-left: 6px;
+            margin-bottom: 8px;
+            display: none
+        }
+
+        .card-notes-preview.has-notes {
+            display: block
+        }
+
+        .card-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 6px;
+            flex-wrap: wrap
+        }
+
+        .card-btns {
+            display: flex;
+            gap: 5px;
+            opacity: 0;
+            transition: opacity .2s
+        }
+
+        .task-card:hover .card-btns {
+            opacity: 1
+        }
+
+        .c-btn {
+            width: 22px;
+            height: 22px;
+            border-radius: 5px;
+            border: none;
+            background: rgba(255, 255, 255, .07);
+            color: var(--text3);
+            font-size: .6rem;
+            cursor: pointer;
+            display: grid;
+            place-content: center;
+            transition: background .15s, color .15s
+        }
+
+        .c-btn:hover {
+            background: rgba(255, 92, 92, .2);
+            color: var(--red)
+        }
+
+        .c-btn.edit:hover {
+            background: rgba(245, 166, 35, .2);
+            color: var(--amber)
+        }
+
+        .c-btn.focus-btn:hover {
+            background: rgba(79, 163, 232, .2);
+            color: var(--blue)
+        }
+
+        .c-btn.notes-btn:hover {
+            background: rgba(76, 175, 80, .2);
+            color: var(--green)
+        }
+
+        .done-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 5px 12px;
+            border-radius: 20px;
+            border: 1px solid rgba(76, 175, 80, .4);
+            background: rgba(76, 175, 80, .1);
+            color: #6fcf72;
+            font-size: .68rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all .2s;
+            white-space: nowrap;
+            letter-spacing: .5px
+        }
+
+        .done-btn:hover {
+            background: rgba(76, 175, 80, .25);
+            border-color: rgba(76, 175, 80, .7);
+            transform: scale(1.06);
+            box-shadow: 0 4px 14px rgba(76, 175, 80, .25)
+        }
+
+        .done-btn:active {
+            transform: scale(.97)
+        }
+
+        .done-btn.is-done {
+            background: rgba(76, 175, 80, .2);
+            border-color: rgba(76, 175, 80, .5);
+            color: var(--green);
+            cursor: default;
+            transform: none
+        }
+
+        .done-btn.is-done:hover {
+            transform: none;
+            box-shadow: none
+        }
+
+        .card-time {
+            font-size: .62rem;
+            color: var(--text3)
+        }
+
+        .card-footer-right {
+            display: flex;
+            align-items: center;
+            gap: 6px
+        }
+
+        .stats-panel {
+            width: 100%;
+            max-width: 1300px;
+            margin: 0 auto 20px;
+            background: var(--glass2);
+            border: 1px solid var(--gb2);
+            border-radius: var(--r);
+            padding: 16px 20px;
+            display: none
+        }
+
+        .stats-panel.open {
+            display: block
+        }
+
+        .stats-panel h3 {
+            font-size: .8rem;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: var(--text2);
+            margin-bottom: 14px
+        }
+
+        .week-bars {
+            display: flex;
+            gap: 6px;
+            align-items: flex-end;
+            height: 80px
+        }
+
+        .week-bar-wrap {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px
+        }
+
+        .week-bar-bg {
+            flex: 1;
+            width: 100%;
+            background: rgba(255, 255, 255, .06);
+            border-radius: 4px;
+            display: flex;
+            align-items: flex-end;
+            overflow: hidden
+        }
+
+        .week-bar-fill {
+            width: 100%;
+            background: linear-gradient(180deg, var(--amber), var(--amber-deep));
+            border-radius: 4px;
+            transition: height .5s ease
+        }
+
+        .week-day {
+            font-size: .62rem;
+            color: var(--text3)
+        }
+
+        .week-count {
+            font-size: .65rem;
+            color: var(--amber);
+            font-weight: 600
+        }
+
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 150;
+            background: rgba(0, 0, 0, .7);
+            backdrop-filter: blur(6px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px
+        }
+
+        .modal-overlay.open {
+            display: flex
+        }
+
+        .modal {
+            background: #181200;
+            border: 1px solid var(--gb);
+            border-radius: var(--r);
+            padding: 26px;
+            width: min(460px, 100%);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, .7);
+            animation: fadeUp .3s ease both;
+            max-height: 90vh;
+            overflow-y: auto
+        }
+
+        .modal h3 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.2rem;
+            color: var(--amber);
+            margin-bottom: 18px;
+            display: flex;
+            align-items: center;
+            gap: 8px
+        }
+
+        .modal label {
+            display: block;
+            font-size: .75rem;
+            color: var(--text2);
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            letter-spacing: .5px
+        }
+
+        .modal input,
+        .modal select,
+        .modal textarea {
+            width: 100%;
+            background: rgba(255, 255, 255, .05);
+            border: 1px solid rgba(255, 200, 80, .18);
+            border-radius: var(--r3);
+            padding: 10px 13px;
+            color: var(--text);
+            font-family: 'DM Sans', sans-serif;
+            font-size: .88rem;
+            outline: none;
+            margin-bottom: 13px;
+            transition: border-color .2s;
+            resize: vertical
+        }
+
+        .modal input:focus,
+        .modal select:focus,
+        .modal textarea:focus {
+            border-color: var(--amber)
+        }
+
+        .modal select option {
+            background: #181200
+        }
+
+        .modal-btns {
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end;
+            margin-top: 4px
+        }
+
+        .priority-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 13px
+        }
+
+        .pri-opt {
+            flex: 1;
+            padding: 8px;
+            border-radius: var(--r3);
+            border: 1px solid rgba(255, 255, 255, .1);
+            background: rgba(255, 255, 255, .04);
+            cursor: pointer;
+            text-align: center;
+            font-size: .75rem;
+            font-weight: 600;
+            transition: background .2s, border-color .2s
+        }
+
+        .pri-opt[data-p=high].sel {
+            background: rgba(255, 92, 92, .2);
+            border-color: var(--red);
+            color: var(--red)
+        }
+
+        .pri-opt[data-p=med].sel {
+            background: rgba(245, 166, 35, .2);
+            border-color: var(--amber);
+            color: var(--amber)
+        }
+
+        .pri-opt[data-p=low].sel {
+            background: rgba(79, 163, 232, .2);
+            border-color: var(--blue);
+            color: var(--blue)
+        }
+
+        .pri-opt:not(.sel) {
+            color: var(--text3)
+        }
+
+        .notes-modal .modal {
+            max-width: 500px
+        }
+
+        #pg-focus {
+            background: var(--bg);
+            flex-direction: column;
+            gap: 24px;
+            text-align: center;
+            padding: 40px 20px
+        }
+
+        .focus-task-name {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(1.6rem, 5vw, 2.8rem);
+            font-weight: 900;
+            color: var(--amber);
+            text-shadow: 0 0 40px rgba(245, 166, 35, .25);
+            max-width: 600px;
+            line-height: 1.3
+        }
+
+        .focus-task-desc {
+            font-size: 1rem;
+            color: var(--text2);
+            max-width: 400px;
+            line-height: 1.6
+        }
+
+        .focus-timer {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(4rem, 15vw, 7rem);
+            font-weight: 900;
+            color: var(--amber);
+            letter-spacing: 4px;
+            line-height: 1;
+            text-shadow: 0 0 60px rgba(245, 166, 35, .2)
+        }
+
+        .focus-timer.break-t {
+            color: var(--green);
+            text-shadow: 0 0 60px rgba(76, 175, 80, .2)
+        }
+
+        .focus-label {
+            font-size: .75rem;
+            color: var(--text3);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-top: -10px
+        }
+
+        .focus-dots {
+            display: flex;
+            gap: 10px;
+            justify-content: center
+        }
+
+        .focus-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, .1);
+            transition: background .3s
+        }
+
+        .focus-dot.done {
+            background: var(--amber)
+        }
+
+        .focus-quote {
+            font-size: .85rem;
+            color: var(--text3);
+            font-style: italic;
+            max-width: 380px;
+            line-height: 1.6;
+            padding: 16px;
+            border: 1px solid var(--gb2);
+            border-radius: var(--r2);
+            background: var(--glass2)
+        }
+
+        .focus-exit {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, .07);
+            border: 1px solid rgba(255, 255, 255, .12);
+            border-radius: 30px;
+            padding: 8px 16px;
+            color: var(--text2);
+            font-size: .78rem;
+            cursor: pointer;
+            transition: background .2s
+        }
+
+        .focus-exit:hover {
+            background: rgba(255, 255, 255, .12)
+        }
+
+        .focus-btns {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            justify-content: center
+        }
+
+        .confetti-piece {
+            position: fixed;
+            top: -10px;
+            width: 9px;
+            height: 9px;
+            border-radius: 2px;
+            animation: cfall linear forwards;
+            z-index: 999;
+            pointer-events: none
+        }
+
+        @keyframes cfall {
+            to {
+                transform: translateY(110vh) rotate(720deg);
+                opacity: 0
+            }
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            background: #181200;
+            border: 1px solid var(--gb);
+            border-radius: 30px;
+            padding: 10px 20px;
+            font-size: .82rem;
+            color: var(--text);
+            box-shadow: var(--shadow);
+            z-index: 500;
+            opacity: 0;
+            transition: opacity .3s, transform .3s;
+            pointer-events: none;
+            white-space: nowrap
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0)
+        }
+
+        ::-webkit-scrollbar {
+            width: 4px
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--gb);
+            border-radius: 10px
+        }
+
+        @keyframes pulse-glow {
+
+            0%,
+            100% {
+                box-shadow: 0 6px 40px rgba(245, 166, 35, 0.45), 0 0 0 0 rgba(245, 166, 35, 0.2)
+            }
+
+            50% {
+                box-shadow: 0 6px 40px rgba(245, 166, 35, 0.45), 0 0 0 18px rgba(245, 166, 35, 0.04)
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="bg-layer"></div>
+    <div class="noise"></div>
+
+    <!-- ══════════════ LANDING PAGE ══════════════ -->
+    <div id="pg-landing">
+        <div class="land-logo">FocusBoard</div>
+        <div
+            style="font-size:clamp(.75rem,2vw,.9rem);color:var(--text2);letter-spacing:3px;text-transform:uppercase;margin-top:12px;margin-bottom:50px;animation:fadeUp .7s .1s ease both">
+            Anti-Distraction Productivity System
+        </div>
+
+        <div
+            style="display:flex;gap:14px;flex-wrap:wrap;justify-content:center;margin-bottom:64px;animation:fadeUp .7s .2s ease both">
+            <div style="background:var(--glass2);border:1px solid var(--gb2);border-radius:var(--r);padding:20px 22px;min-width:140px;max-width:170px;text-align:center;transition:transform .2s,border-color .2s"
+                onmouseover="this.style.transform='translateY(-5px)';this.style.borderColor='var(--gb)'"
+                onmouseout="this.style.transform='';this.style.borderColor=''">
+                <div style="font-size:1.8rem;margin-bottom:10px">📋</div>
+                <div style="font-size:.82rem;font-weight:600;color:var(--text);margin-bottom:4px">Kanban Board</div>
+                <div style="font-size:.7rem;color:var(--text3);line-height:1.4">Drag & drop task management</div>
+            </div>
+            <div style="background:var(--glass2);border:1px solid var(--gb2);border-radius:var(--r);padding:20px 22px;min-width:140px;max-width:170px;text-align:center;transition:transform .2s,border-color .2s"
+                onmouseover="this.style.transform='translateY(-5px)';this.style.borderColor='var(--gb)'"
+                onmouseout="this.style.transform='';this.style.borderColor=''">
+                <div style="font-size:1.8rem;margin-bottom:10px">⏱️</div>
+                <div style="font-size:.82rem;font-weight:600;color:var(--text);margin-bottom:4px">Pomodoro Timer</div>
+                <div style="font-size:.7rem;color:var(--text3);line-height:1.4">Stay in deep work flow</div>
+            </div>
+            <div style="background:var(--glass2);border:1px solid var(--gb2);border-radius:var(--r);padding:20px 22px;min-width:140px;max-width:170px;text-align:center;transition:transform .2s,border-color .2s"
+                onmouseover="this.style.transform='translateY(-5px)';this.style.borderColor='var(--gb)'"
+                onmouseout="this.style.transform='';this.style.borderColor=''">
+                <div style="font-size:1.8rem;margin-bottom:10px">✅</div>
+                <div style="font-size:.82rem;font-weight:600;color:var(--text);margin-bottom:4px">Quick Done</div>
+                <div style="font-size:.7rem;color:var(--text3);line-height:1.4">One click task complete</div>
+            </div>
+            <div style="background:var(--glass2);border:1px solid var(--gb2);border-radius:var(--r);padding:20px 22px;min-width:140px;max-width:170px;text-align:center;transition:transform .2s,border-color .2s"
+                onmouseover="this.style.transform='translateY(-5px)';this.style.borderColor='var(--gb)'"
+                onmouseout="this.style.transform='';this.style.borderColor=''">
+                <div style="font-size:1.8rem;margin-bottom:10px">🎯</div>
+                <div style="font-size:.82rem;font-weight:600;color:var(--text);margin-bottom:4px">Focus Mode</div>
+                <div style="font-size:.7rem;color:var(--text3);line-height:1.4">Zero distraction sessions</div>
+            </div>
+            <div style="background:var(--glass2);border:1px solid var(--gb2);border-radius:var(--r);padding:20px 22px;min-width:140px;max-width:170px;text-align:center;transition:transform .2s,border-color .2s"
+                onmouseover="this.style.transform='translateY(-5px)';this.style.borderColor='var(--gb)'"
+                onmouseout="this.style.transform='';this.style.borderColor=''">
+                <div style="font-size:1.8rem;margin-bottom:10px">🔥</div>
+                <div style="font-size:.82rem;font-weight:600;color:var(--text);margin-bottom:4px">Streak Tracker</div>
+                <div style="font-size:.7rem;color:var(--text3);line-height:1.4">Build daily habits</div>
+            </div>
+        </div>
+
+        <div style="animation:fadeUp .7s .35s ease both">
+            <button onclick="goToBoard()"
+                style="position:relative;padding:22px 64px;border:none;border-radius:50px;background:linear-gradient(135deg,var(--amber) 0%,var(--amber-deep) 100%);color:#fff;font-family:'Playfair Display',serif;font-size:1.3rem;font-weight:700;letter-spacing:3px;text-transform:uppercase;cursor:pointer;transition:transform .25s,box-shadow .25s;box-shadow:0 6px 40px rgba(245,166,35,0.45);animation:pulse-glow 2.5s ease-in-out infinite">
+                GO TO FOCUS BOARD &nbsp;→
+            </button>
+        </div>
+        <div style="margin-top:22px;font-size:.74rem;color:var(--text3);animation:fadeIn 1s .6s ease both">
+            Your data saves automatically in your browser
+        </div>
+    </div>
+
+    <!-- ══════════════ BOARD ══════════════ -->
+    <div id="pg-board">
+        <div class="b-header">
+            <div class="b-logo" onclick="goToLanding()">FocusBoard <span>← Back to Home</span></div>
+            <div class="h-actions">
+                <div class="streak-badge"><i class="fas fa-fire"></i> <span id="streakNum">0</span> day streak</div>
+                <button class="btn-sm" onclick="toggleStats()"><i class="fas fa-chart-bar"></i> Stats</button>
+                <button class="btn-sm btn-add" onclick="openAddModal()"><i class="fas fa-plus"></i> Add Task</button>
+            </div>
+        </div>
+        <div class="stats-row">
+            <div class="stat-card">
+                <div class="stat-label">Total Tasks</div>
+                <div class="stat-val" id="st-total">0</div>
+                <div class="stat-sub">all time</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Completed</div>
+                <div class="stat-val" id="st-done">0</div>
+                <div class="stat-sub">tasks done</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">In Progress</div>
+                <div class="stat-val" id="st-prog">0</div>
+                <div class="stat-sub">working on</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Focus Sessions</div>
+                <div class="stat-val" id="st-pomo">0</div>
+                <div class="stat-sub">pomodoros done</div>
+            </div>
+        </div>
+        <div class="stats-panel" id="statsPanel">
+            <h3><i class="fas fa-chart-bar"></i> &nbsp;This Week's Progress</h3>
+            <div class="week-bars" id="weekBars"></div>
+        </div>
+        <div class="prog-wrap">
+            <div class="prog-top"><span>Overall Progress</span><span id="progTxt">0%</span></div>
+            <div class="prog-bar">
+                <div class="prog-fill" id="progFill" style="width:0%"></div>
+            </div>
+        </div>
+        <div class="pomo-bar">
+            <div class="pomo-ring">
+                <svg width="42" height="42" viewBox="0 0 42 42">
+                    <circle class="bg-c" cx="21" cy="21" r="18"></circle>
+                    <circle class="fg-c" id="pomoRingFg" cx="21" cy="21" r="18" stroke-dasharray="113.1"
+                        stroke-dashoffset="0"></circle>
+                </svg>
+            </div>
+            <div>
+                <div class="pomo-timer" id="pomoTime">25:00</div>
+                <div class="pomo-status" id="pomoStatus">Ready to Focus</div>
+            </div>
+            <div class="pomo-task-name" id="pomoTaskName">No task selected</div>
+            <div class="pomo-circles" id="pomoDots"></div>
+            <div class="pomo-btns">
+                <button class="btn-sm" id="pomoStartBtn" onclick="togglePomo()"><i class="fas fa-play"></i>
+                    Start</button>
+                <button class="btn-sm" onclick="resetPomo()"><i class="fas fa-rotate-left"></i></button>
+            </div>
+        </div>
+        <div class="kanban">
+            <div class="col-wrap col-todo" id="col-todo">
+                <div class="col-hd"><span><i class="fas fa-circle-dot"></i> To Do</span><span class="badge"
+                        id="bd-todo">0</span></div>
+                <div class="cards-list" id="list-todo" ondragover="dOver(event)" ondrop="dDrop(event,'todo')"
+                    ondragleave="dLeave(event)"></div>
+            </div>
+            <div class="col-wrap col-prog" id="col-prog">
+                <div class="col-hd"><span><i class="fas fa-spinner fa-spin" style="animation-duration:2s"></i> In
+                        Progress</span><span class="badge" id="bd-prog">0</span></div>
+                <div class="cards-list" id="list-prog" ondragover="dOver(event)" ondrop="dDrop(event,'prog')"
+                    ondragleave="dLeave(event)"></div>
+            </div>
+            <div class="col-wrap col-review" id="col-review">
+                <div class="col-hd"><span><i class="fas fa-magnifying-glass"></i> Review</span><span class="badge"
+                        id="bd-review">0</span></div>
+                <div class="cards-list" id="list-review" ondragover="dOver(event)" ondrop="dDrop(event,'review')"
+                    ondragleave="dLeave(event)"></div>
+            </div>
+            <div class="col-wrap col-done" id="col-done">
+                <div class="col-hd"><span><i class="fas fa-circle-check"></i> Done</span><span class="badge"
+                        id="bd-done">0</span></div>
+                <div class="cards-list" id="list-done" ondragover="dOver(event)" ondrop="dDrop(event,'done')"
+                    ondragleave="dLeave(event)"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════ FOCUS MODE ══════════════ -->
+    <div id="pg-focus">
+        <button class="focus-exit" onclick="exitFocus()"><i class="fas fa-arrow-left"></i> Back to Board</button>
+        <div class="focus-task-name" id="focusTaskName">Task Name</div>
+        <div class="focus-task-desc" id="focusTaskDesc">Description</div>
+        <div class="focus-timer" id="focusTimer">25:00</div>
+        <div class="focus-label" id="focusLabel">Focus Session</div>
+        <div class="focus-dots" id="focusDots"></div>
+        <div class="focus-btns">
+            <button class="btn-sm btn-add" onclick="togglePomo()"><i class="fas fa-play"></i> <span
+                    id="focusStartTxt">Start Timer</span></button>
+            <button class="btn-sm" onclick="resetPomo()"><i class="fas fa-rotate-left"></i> Reset</button>
+        </div>
+        <div class="focus-quote" id="focusQuote"></div>
+    </div>
+
+    <!-- ADD/EDIT MODAL -->
+    <div class="modal-overlay" id="taskModal">
+        <div class="modal">
+            <h3 id="modalTitle"><i class="fas fa-plus-circle"></i> Add New Task</h3>
+            <label>Task Title</label>
+            <input type="text" id="tTitle" placeholder="e.g. Design homepage">
+            <label>Description</label>
+            <textarea id="tDesc" rows="2" placeholder="Short description..."></textarea>
+            <label>Notes (optional)</label>
+            <textarea id="tNotes" rows="3" placeholder="Add links, ideas, details..."></textarea>
+            <label>Priority</label>
+            <div class="priority-row">
+                <div class="pri-opt sel" data-p="high" onclick="selPri(this)">🔴 High</div>
+                <div class="pri-opt" data-p="med" onclick="selPri(this)">🟡 Medium</div>
+                <div class="pri-opt" data-p="low" onclick="selPri(this)">🔵 Low</div>
+            </div>
+            <label>Column</label>
+            <select id="tCol">
+                <option value="todo">To Do</option>
+                <option value="prog">In Progress</option>
+                <option value="review">Review</option>
+                <option value="done">Done</option>
+            </select>
+            <div class="modal-btns">
+                <button class="btn-sm" onclick="closeModal('taskModal')">Cancel</button>
+                <button class="btn-sm btn-add" onclick="saveTask()">Save Task</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- NOTES MODAL -->
+    <div class="modal-overlay notes-modal" id="notesModal">
+        <div class="modal">
+            <h3><i class="fas fa-note-sticky"></i> Task Notes</h3>
+            <div id="notesTaskTitle" style="font-size:.9rem;color:var(--amber);margin-bottom:12px;font-weight:600">
+            </div>
+            <textarea id="notesArea" rows="7" placeholder="Write notes, links, ideas..."></textarea>
+            <div class="modal-btns">
+                <button class="btn-sm" onclick="closeModal('notesModal')">Close</button>
+                <button class="btn-sm btn-add" onclick="saveNotes()">Save Notes</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOAST -->
+    <div class="toast" id="toast"></div>
+
+    <!-- ══════════════ PWA INSTALL BANNER (Android / Chrome) ══════════════ -->
+    <div id="pwa-banner">
+        <div class="pwa-app-icon">⚡</div>
+        <div class="pwa-info">
+            <div class="pwa-stars">★★★★★</div>
+            <div class="pwa-title">Install FocusBoard</div>
+            <div class="pwa-sub">Add to home screen — free, works offline</div>
+        </div>
+        <div class="pwa-btns">
+            <button class="pwa-install-btn" onclick="installPWA()">
+                <i class="fas fa-download"></i> Install
+            </button>
+            <button class="pwa-dismiss-btn" onclick="dismissBanner()" title="Dismiss">×</button>
+        </div>
+    </div>
+
+    <!-- ══════════════ iOS INSTALL HINT ══════════════ -->
+    <div id="ios-hint">
+        <button class="ios-dismiss" onclick="document.getElementById('ios-hint').classList.remove('show')">×</button>
+        <div class="ios-hint-inner">
+            <div class="ios-hint-icon">⚡</div>
+            <div class="ios-hint-text">
+                <div class="ios-hint-title">Install FocusBoard on iPhone</div>
+                <div class="ios-hint-desc">
+                    Tap the <b>Share</b> button <b>⎙</b> at the bottom of your browser,<br>
+                    then tap <b>"Add to Home Screen"</b> to install the app.
+                </div>
+            </div>
+        </div>
+        <div class="ios-arrow">↓ tap Share below ↓</div>
+    </div>
+
+    <script>
+        /* ══ QUOTES ══ */
+        const QUOTES = [
+            "Focus is the art of knowing what to ignore.",
+            "One task at a time — that's the superpower.",
+            "Deep work is the skill of the future.",
+            "Your future self will thank you for this session.",
+            "Progress beats perfection every time.",
+            "The phone can wait. Your goals cannot.",
+            "Distraction is the enemy of excellence.",
+            "Small steps every day build great things.",
+            "You don't have to be great to start, but you have to start to be great."
+        ];
+
+        const COL_ICONS = { todo: 'fas fa-circle-dot', prog: 'fas fa-spinner', review: 'fas fa-magnifying-glass', done: 'fas fa-circle-check' };
+
+        /* ══ STATE ══ */
+        let tasks = [], nextId = 1, draggingId = null;
+        let editId = null, selectedPri = 'high', notesTaskId = null;
+        let focusTaskId = null;
+        let pomoDuration = 25 * 60, breakDuration = 5 * 60;
+        let pomoSeconds = pomoDuration, pomoRunning = false, pomoBreak = false;
+        let pomoRound = 0, pomoInterval = null, pomoTotal = 0;
+        let streak = 0, lastDoneDate = '';
+        let weekData = { Mon: 0, Tue: 0, Wed: 0, Thu: 0, Fri: 0, Sat: 0, Sun: 0 };
+
+        /* ══ STORAGE ══ */
+        function save() {
+            localStorage.setItem('fb_tasks', JSON.stringify(tasks));
+            localStorage.setItem('fb_nextId', nextId);
+            localStorage.setItem('fb_pomo', pomoTotal);
+            localStorage.setItem('fb_streak', streak);
+            localStorage.setItem('fb_lastDone', lastDoneDate);
+            localStorage.setItem('fb_week', JSON.stringify(weekData));
+        }
+        function load() {
+            try {
+                tasks = JSON.parse(localStorage.getItem('fb_tasks')) || getDefaultTasks();
+                nextId = parseInt(localStorage.getItem('fb_nextId')) || tasks.length + 1;
+                pomoTotal = parseInt(localStorage.getItem('fb_pomo')) || 0;
+                streak = parseInt(localStorage.getItem('fb_streak')) || 0;
+                lastDoneDate = localStorage.getItem('fb_lastDone') || '';
+                weekData = JSON.parse(localStorage.getItem('fb_week')) || { Mon: 0, Tue: 0, Wed: 0, Thu: 0, Fri: 0, Sat: 0, Sun: 0 };
+            } catch (e) { tasks = getDefaultTasks() }
+        }
+        function getDefaultTasks() {
+            nextId = 10;
+            return [
+                { id: 1, title: 'Plan the day', desc: 'Outline goals & schedule', notes: '', col: 'todo', pri: 'high', created: Date.now() },
+                { id: 2, title: 'Research ideas', desc: 'Gather references & data', notes: '', col: 'todo', pri: 'med', created: Date.now() },
+                { id: 3, title: 'Organize notes', desc: 'Clean up Notion boards', notes: '', col: 'todo', pri: 'low', created: Date.now() },
+                { id: 4, title: 'Work on project', desc: 'Core feature development', notes: '', col: 'prog', pri: 'high', created: Date.now() },
+                { id: 5, title: 'Create content', desc: 'Write blog post draft', notes: '', col: 'prog', pri: 'med', created: Date.now() },
+                { id: 6, title: 'Review and edit', desc: 'Proofread final doc', notes: '', col: 'review', pri: 'med', created: Date.now() },
+                { id: 7, title: 'Morning routine', desc: 'Exercise & meditation', notes: 'Done!', col: 'done', pri: 'high', created: Date.now() },
+                { id: 8, title: 'Reply to emails', desc: 'Inbox zero achieved', notes: '', col: 'done', pri: 'low', created: Date.now() },
+                { id: 9, title: 'Plan next steps', desc: 'Set priorities for tomorrow', notes: '', col: 'done', pri: 'med', created: Date.now() },
+            ];
+        }
+
+        /* ══ NAVIGATION ══ */
+        function goToBoard() {
+            load(); checkStreak();
+            document.getElementById('pg-landing').style.display = 'none';
+            document.getElementById('pg-board').style.display = 'block';
+            renderAll(); updatePomoUI(); renderPomoDots();
+        }
+        function goToLanding() {
+            save();
+            document.getElementById('pg-board').style.display = 'none';
+            document.getElementById('pg-landing').style.display = 'flex';
+            clearInterval(pomoInterval); pomoRunning = false;
+        }
+
+        /* ══ STREAK ══ */
+        function checkStreak() {
+            const today = new Date().toDateString();
+            if (lastDoneDate !== today) {
+                const yesterday = new Date(Date.now() - 86400000).toDateString();
+                if (lastDoneDate && lastDoneDate !== yesterday && lastDoneDate !== today) { streak = 0; save(); }
+            }
+            document.getElementById('streakNum').textContent = streak;
+        }
+        function bumpStreak() {
+            const today = new Date().toDateString();
+            if (lastDoneDate === today) return;
+            const yesterday = new Date(Date.now() - 86400000).toDateString();
+            if (!lastDoneDate || lastDoneDate === yesterday) streak++;
+            else if (lastDoneDate !== yesterday && lastDoneDate !== today) streak = 1;
+            lastDoneDate = today;
+            document.getElementById('streakNum').textContent = streak;
+            save();
+        }
+
+        /* ══ RENDER ══ */
+        function renderAll() {
+            ['todo', 'prog', 'review', 'done'].forEach(col => {
+                const list = document.getElementById('list-' + col);
+                list.innerHTML = '';
+                const ct = tasks.filter(t => t.col === col);
+                ct.forEach(t => {
+                    const card = document.createElement('div');
+                    card.className = `task-card pri-${t.pri}`;
+                    card.draggable = true;
+                    card.dataset.id = t.id;
+                    const priLabel = { high: 'HIGH', med: 'MED', low: 'LOW' }[t.pri];
+                    const ago = timeAgo(t.created);
+                    const isDone = col === 'done';
+                    card.innerHTML = `
+                    <div class="card-top">
+                        <div class="card-icon-wrap"><i class="${COL_ICONS[col]}"></i></div>
+                        <span class="pri-tag">${isDone ? 'DONE' : priLabel}</span>
+                    </div>
+                    <div class="card-title">${t.title}</div>
+                    <div class="card-desc">${t.desc}</div>
+                    <div class="card-notes-preview ${t.notes ? 'has-notes' : ''}">${t.notes ? '📝 ' + t.notes.substring(0, 60) + (t.notes.length > 60 ? '…' : '') : ''}</div>
+                    <div class="card-footer">
+                        <div class="card-btns">
+                            <button class="c-btn focus-btn" title="Focus Mode" onclick="startFocus(${t.id})"><i class="fas fa-bullseye"></i></button>
+                            <button class="c-btn notes-btn" title="Notes" onclick="openNotes(${t.id})"><i class="fas fa-note-sticky"></i></button>
+                            <button class="c-btn edit" title="Edit" onclick="openEditModal(${t.id})"><i class="fas fa-pen"></i></button>
+                            <button class="c-btn" title="Delete" onclick="deleteTask(${t.id})"><i class="fas fa-trash"></i></button>
+                        </div>
+                        <div class="card-footer-right">
+                            <span class="card-time">${ago}</span>
+                            ${isDone
+                            ? `<button class="done-btn is-done"><i class="fas fa-check"></i> Done</button>`
+                            : `<button class="done-btn" onclick="markDone(${t.id})"><i class="fas fa-check"></i> Done</button>`}
+                        </div>
+                    </div>`;
+                    card.addEventListener('dragstart', e => { draggingId = t.id; setTimeout(() => card.classList.add('dragging'), 0) });
+                    card.addEventListener('dragend', () => card.classList.remove('dragging'));
+                    list.appendChild(card);
+                });
+                document.getElementById('bd-' + col).textContent = ct.length;
+            });
+            updateStats(); renderWeekBars(); renderPomoDots();
+        }
+
+        function markDone(id) {
+            const t = tasks.find(x => x.id === id);
+            if (!t || t.col === 'done') return;
+            t.col = 'done'; confetti(); bumpStreak(); recordWeekDone(); save(); renderAll();
+            showToast('🎉 Task completed! Great work!');
+        }
+
+        function timeAgo(ts) {
+            const d = Date.now() - ts, m = Math.floor(d / 60000), h = Math.floor(m / 60), day = Math.floor(h / 24);
+            if (day > 0) return day + 'd ago';
+            if (h > 0) return h + 'h ago';
+            if (m > 0) return m + 'm ago';
+            return 'just now';
+        }
+
+        function updateStats() {
+            const done = tasks.filter(t => t.col === 'done').length;
+            const prog = tasks.filter(t => t.col === 'prog').length;
+            const total = tasks.length;
+            const pct = total ? Math.round(done / total * 100) : 0;
+            document.getElementById('progFill').style.width = pct + '%';
+            document.getElementById('progTxt').textContent = pct + '%';
+            document.getElementById('st-total').textContent = total;
+            document.getElementById('st-done').textContent = done;
+            document.getElementById('st-prog').textContent = prog;
+            document.getElementById('st-pomo').textContent = pomoTotal;
+        }
+
+        function toggleStats() { document.getElementById('statsPanel').classList.toggle('open'); renderWeekBars() }
+        function renderWeekBars() {
+            const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+            const max = Math.max(...Object.values(weekData), 1);
+            const el = document.getElementById('weekBars');
+            el.innerHTML = '';
+            days.forEach(d => {
+                const v = weekData[d] || 0;
+                const pct = Math.round(v / max * 100);
+                el.innerHTML += `<div class="week-bar-wrap"><div class="week-count">${v}</div><div class="week-bar-bg"><div class="week-bar-fill" style="height:${pct}%"></div></div><div class="week-day">${d}</div></div>`;
+            });
+        }
+        function recordWeekDone() {
+            const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            const d = days[new Date().getDay()];
+            weekData[d] = (weekData[d] || 0) + 1; save();
+        }
+
+        function dOver(e) { e.preventDefault(); e.currentTarget.classList.add('drag-over') }
+        function dLeave(e) { e.currentTarget.classList.remove('drag-over') }
+        function dDrop(e, col) {
+            e.preventDefault(); e.currentTarget.classList.remove('drag-over');
+            if (draggingId === null) return;
+            const t = tasks.find(x => x.id === draggingId);
+            if (t && t.col !== col) {
+                t.col = col;
+                if (col === 'done') { confetti(); bumpStreak(); recordWeekDone(); }
+                save(); renderAll(); showToast('Task moved to ' + col.charAt(0).toUpperCase() + col.slice(1));
+            }
+            draggingId = null;
+        }
+
+        function openAddModal() {
+            editId = null; selectedPri = 'high';
+            document.getElementById('modalTitle').innerHTML = '<i class="fas fa-plus-circle"></i> Add New Task';
+            document.getElementById('tTitle').value = '';
+            document.getElementById('tDesc').value = '';
+            document.getElementById('tNotes').value = '';
+            document.getElementById('tCol').value = 'todo';
+            document.querySelectorAll('.pri-opt').forEach(o => { o.classList.remove('sel'); if (o.dataset.p === 'high') o.classList.add('sel') });
+            document.getElementById('taskModal').classList.add('open');
+        }
+        function openEditModal(id) {
+            editId = id; const t = tasks.find(x => x.id === id);
+            document.getElementById('modalTitle').innerHTML = '<i class="fas fa-pen"></i> Edit Task';
+            document.getElementById('tTitle').value = t.title;
+            document.getElementById('tDesc').value = t.desc;
+            document.getElementById('tNotes').value = t.notes || '';
+            document.getElementById('tCol').value = t.col;
+            selectedPri = t.pri;
+            document.querySelectorAll('.pri-opt').forEach(o => { o.classList.remove('sel'); if (o.dataset.p === t.pri) o.classList.add('sel') });
+            document.getElementById('taskModal').classList.add('open');
+        }
+        function selPri(el) { selectedPri = el.dataset.p; document.querySelectorAll('.pri-opt').forEach(o => o.classList.remove('sel')); el.classList.add('sel') }
+        function saveTask() {
+            const title = document.getElementById('tTitle').value.trim();
+            if (!title) { showToast('Please enter a title'); return }
+            const desc = document.getElementById('tDesc').value.trim();
+            const notes = document.getElementById('tNotes').value.trim();
+            const col = document.getElementById('tCol').value;
+            if (editId) {
+                const t = tasks.find(x => x.id === editId);
+                t.title = title; t.desc = desc || 'No description'; t.notes = notes; t.col = col; t.pri = selectedPri;
+            } else {
+                tasks.push({ id: nextId++, title, desc: desc || 'No description', notes, col, pri: selectedPri, created: Date.now() });
+            }
+            closeModal('taskModal'); save(); renderAll();
+            showToast(editId ? 'Task updated!' : 'Task added!');
+        }
+        function deleteTask(id) {
+            tasks = tasks.filter(t => t.id !== id);
+            if (focusTaskId === id) exitFocus();
+            save(); renderAll(); showToast('Task deleted');
+        }
+        function closeModal(id) { document.getElementById(id).classList.remove('open') }
+
+        function openNotes(id) {
+            notesTaskId = id; const t = tasks.find(x => x.id === id);
+            document.getElementById('notesTaskTitle').textContent = t.title;
+            document.getElementById('notesArea').value = t.notes || '';
+            document.getElementById('notesModal').classList.add('open');
+        }
+        function saveNotes() {
+            const t = tasks.find(x => x.id === notesTaskId);
+            if (t) { t.notes = document.getElementById('notesArea').value.trim() }
+            save(); renderAll(); closeModal('notesModal'); showToast('Notes saved!');
+        }
+
+        function formatTime(s) { return `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}` }
+        function renderPomoDots() {
+            const el = document.getElementById('pomoDots');
+            const fe = document.getElementById('focusDots');
+            let h = '', fh = '';
+            for (let i = 0; i < 4; i++) {
+                const done = i < pomoRound % 4;
+                h += `<div class="pomo-dot${done ? ' done' : ''}"></div>`;
+                fh += `<div class="focus-dot${done ? ' done' : ''}"></div>`;
+            }
+            el.innerHTML = h; if (fe) fe.innerHTML = fh;
+        }
+        function updatePomoUI() {
+            const ts = formatTime(pomoSeconds);
+            document.getElementById('pomoTime').textContent = ts;
+            document.getElementById('pomoTime').className = 'pomo-timer' + (pomoBreak ? ' break' : '');
+            document.getElementById('pomoStatus').textContent = pomoBreak ? '☕ Break Time' : '🎯 Focus Session';
+            document.getElementById('focusTimer').textContent = ts;
+            document.getElementById('focusTimer').className = 'focus-timer' + (pomoBreak ? ' break-t' : '');
+            document.getElementById('focusLabel').textContent = pomoBreak ? 'Break Time' : 'Focus Session';
+            document.getElementById('focusStartTxt').textContent = pomoRunning ? 'Pause' : 'Start Timer';
+            document.getElementById('pomoStartBtn').innerHTML = `<i class="fas fa-${pomoRunning ? 'pause' : 'play'}"></i> ${pomoRunning ? 'Pause' : 'Start'}`;
+            const total = pomoBreak ? breakDuration : pomoDuration;
+            const frac = (total - pomoSeconds) / total;
+            document.getElementById('pomoRingFg').style.strokeDashoffset = 113.1 * (1 - frac);
+        }
+        function togglePomo() {
+            if (pomoRunning) { clearInterval(pomoInterval); pomoRunning = false; }
+            else {
+                pomoRunning = true;
+                pomoInterval = setInterval(() => {
+                    pomoSeconds--;
+                    updatePomoUI();
+                    if (pomoSeconds <= 0) {
+                        clearInterval(pomoInterval); pomoRunning = false;
+                        if (!pomoBreak) { pomoTotal++; pomoRound++; save(); confetti(); showToast('🎉 Pomodoro done! Take a break.'); }
+                        else { showToast('Break over! Back to work 💪') }
+                        pomoBreak = !pomoBreak;
+                        pomoSeconds = pomoBreak ? breakDuration : pomoDuration;
+                        renderPomoDots(); updateStats();
+                    }
+                }, 1000);
+            }
+            updatePomoUI();
+        }
+        function resetPomo() {
+            clearInterval(pomoInterval); pomoRunning = false; pomoBreak = false;
+            pomoSeconds = pomoDuration; updatePomoUI();
+            document.getElementById('pomoStartBtn').innerHTML = '<i class="fas fa-play"></i> Start';
+        }
+
+        function startFocus(id) {
+            focusTaskId = id;
+            const t = tasks.find(x => x.id === id);
+            document.getElementById('focusTaskName').textContent = t.title;
+            document.getElementById('focusTaskDesc').textContent = t.desc;
+            document.getElementById('pomoTaskName').textContent = t.title;
+            document.getElementById('focusQuote').textContent = QUOTES[Math.floor(Math.random() * QUOTES.length)];
+            renderPomoDots(); updatePomoUI();
+            document.getElementById('pg-focus').style.display = 'flex';
+        }
+        function exitFocus() { document.getElementById('pg-focus').style.display = 'none' }
+
+        function confetti() {
+            const cols = ['#f5a623', '#fff', '#4caf50', '#ff9c00', '#4fa3e8', '#b06ee0'];
+            for (let i = 0; i < 40; i++) {
+                const el = document.createElement('div');
+                el.className = 'confetti-piece';
+                el.style.left = Math.random() * 100 + 'vw';
+                el.style.background = cols[Math.floor(Math.random() * cols.length)];
+                el.style.animationDuration = (.7 + Math.random() * 1.2) + 's';
+                el.style.animationDelay = Math.random() * .4 + 's';
+                document.body.appendChild(el);
+                el.addEventListener('animationend', () => el.remove());
+            }
+        }
+
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.textContent = msg; t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 2800);
+        }
+
+        /* ══ PWA INSTALL LOGIC ══ */
+        let deferredPrompt = null;
+
+        window.addEventListener('beforeinstallprompt', e => {
+            e.preventDefault();
+            deferredPrompt = e;
+            // Show banner only if not dismissed before
+            if (!localStorage.getItem('pwa_dismissed')) {
+                document.getElementById('pwa-banner').classList.add('show');
+            }
+        });
+
+        function installPWA() {
+            if (!deferredPrompt) return;
+            document.getElementById('pwa-banner').classList.remove('show');
+            deferredPrompt.prompt();
+            deferredPrompt.userChoice.then(result => {
+                if (result.outcome === 'accepted') {
+                    showToast('🎉 FocusBoard installed successfully!');
+                }
+                deferredPrompt = null;
+            });
+        }
+
+        function dismissBanner() {
+            document.getElementById('pwa-banner').classList.remove('show');
+            localStorage.setItem('pwa_dismissed', '1');
+        }
+
+        window.addEventListener('appinstalled', () => {
+            document.getElementById('pwa-banner').classList.remove('show');
+            showToast('✅ FocusBoard is now installed!');
+        });
+
+        // iOS Safari detection — show iOS hint instead
+        const isIos = /iphone|ipad|ipod/i.test(navigator.userAgent);
+        const isInStandaloneMode = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+        if (isIos && !isInStandaloneMode && !localStorage.getItem('ios_hint_dismissed')) {
+            setTimeout(() => {
+                document.getElementById('ios-hint').classList.add('show');
+            }, 2000);
+        }
+        document.querySelector('.ios-dismiss') && document.querySelector('.ios-dismiss').addEventListener('click', () => {
+            localStorage.setItem('ios_hint_dismissed', '1');
+        });
+
+        /* ══ SERVICE WORKER INLINE ══ */
+        // Register inline service worker via blob (no sw.js file needed!)
+        if ('serviceWorker' in navigator) {
+            const swCode = `
+            const CACHE='focusboard-v1';
+            const FILES=['/'];
+            self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(FILES))));
+            self.addEventListener('fetch',e=>e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request))));
+        `;
+            const blob = new Blob([swCode], { type: 'application/javascript' });
+            const swUrl = URL.createObjectURL(blob);
+            navigator.serviceWorker.register(swUrl, { scope: '/' }).catch(() => { });
+        }
+
+        /* ══ INLINE MANIFEST (injected dynamically) ══ */
+        // For real hosting: create manifest.json separately.
+        // This inline version helps with meta tags for installability.
+        const manifestData = {
+            name: 'FocusBoard — Anti-Distraction Productivity',
+            short_name: 'FocusBoard',
+            description: 'Kanban, Pomodoro & Focus Mode in one app',
+            start_url: '/',
+            display: 'standalone',
+            background_color: '#0f0c00',
+            theme_color: '#f5a623',
+            orientation: 'portrait-primary',
+            icons: [
+                { src: 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192"><rect width="192" height="192" rx="40" fill="#f5a623"/><text x="96" y="130" font-size="100" text-anchor="middle" fill="#0f0c00">⚡</text></svg>'), sizes: '192x192', type: 'image/svg+xml' }
+            ]
+        };
+        const manifestBlob = new Blob([JSON.stringify(manifestData)], { type: 'application/manifest+json' });
+        const manifestUrl = URL.createObjectURL(manifestBlob);
+        const manifestLink = document.createElement('link');
+        manifestLink.rel = 'manifest';
+        manifestLink.href = manifestUrl;
+        document.head.appendChild(manifestLink);
+
+        /* ══ MODALS & KEYBOARD ══ */
+        ['taskModal', 'notesModal'].forEach(id => {
+            document.getElementById(id).addEventListener('click', e => { if (e.target === e.currentTarget) closeModal(id) });
+        });
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Escape') { closeModal('taskModal'); closeModal('notesModal'); exitFocus() }
+        });
+        document.getElementById('tTitle').addEventListener('keydown', e => { if (e.key === 'Enter') saveTask() });
+
+        /* ══ INIT ══ */
+        updatePomoUI(); renderPomoDots();
+    </script>
+</body>
+
+</html>
