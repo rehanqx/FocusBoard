@@ -12,7 +12,7 @@
 
 **An anti-distraction productivity app** — Kanban board, Pomodoro timer & Focus mode, all in one place.
 
-[🔗 Live Demo](https://focus-board-dusky.vercel.app)
+[🔗 Live Demo](https://focusboard-78a1a.web.app/)
 
 ![FocusBoard preview](landing.png)
 
