@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FocusBoard — Admin Panel</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@400;500;600&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    :root {
+      --a: #f5a623;
+      --ad: #c97d10;
+      --al: #ffd580;
+      --bg: #0f0c00;
+      --bg2: #1a1400;
+      --gl: rgba(255, 255, 255, .06);
+      --gl2: rgba(255, 255, 255, .03);
+      --gb: rgba(255, 200, 80, .14);
+      --gb2: rgba(255, 200, 80, .07);
+      --tx: #fff8e8;
+      --tx2: rgba(255, 248, 232, .58);
+      --tx3: rgba(255, 248, 232, .32);
+      --red: #ff5c5c;
+      --green: #4caf50;
+      --blue: #4fa3e8;
+      --r: 14px;
+      --r2: 10px;
+      --r3: 8px;
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--tx);
+      min-height: 100vh
+    }
+
+    .bgl {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      background: radial-gradient(ellipse 60% 50% at 15% 25%, rgba(180, 110, 0, .14) 0%, transparent 65%),
+        radial-gradient(ellipse 50% 55% at 85% 75%, rgba(140, 80, 0, .1) 0%, transparent 65%),
+        linear-gradient(160deg, #0f0c00 0%, #1a1400 55%, #0a0800 100%)
+    }
+
+    /* ── LOGIN ── */
+    #login-screen {
+      position: relative;
+      z-index: 1;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px
+    }
+
+    .login-box {
+      background: rgba(255, 255, 255, .07);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--gb);
+      border-radius: var(--r);
+      padding: 40px 36px;
+      width: min(420px, 100%);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, .5);
+      text-align: center;
+    }
+
+    .login-icon {
+      font-size: 2.8rem;
+      margin-bottom: 14px
+    }
+
+    .login-box h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.6rem;
+      font-weight: 900;
+      color: var(--a);
+      margin-bottom: 6px
+    }
+
+    .login-box p {
+      font-size: .82rem;
+      color: var(--tx2);
+      margin-bottom: 28px
+    }
+
+    .inp-wrap {
+      position: relative;
+      margin-bottom: 14px
+    }
+
+    .inp-wrap i {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--tx3);
+      font-size: .85rem;
+      pointer-events: none
+    }
+
+    .inp-wrap input {
+      width: 100%;
+      background: rgba(255, 255, 255, .05);
+      border: 1px solid rgba(255, 200, 80, .18);
+      border-radius: var(--r2);
+      padding: 13px 16px 13px 40px;
+      color: var(--tx);
+      font-family: 'DM Sans', sans-serif;
+      font-size: .92rem;
+      outline: none;
+      transition: border-color .2s;
+    }
+
+    .inp-wrap input:focus {
+      border-color: var(--a)
+    }
+
+    .inp-wrap input::placeholder {
+      color: var(--tx3)
+    }
+
+    .btn-login {
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: var(--r2);
+      background: linear-gradient(135deg, var(--a), var(--ad));
+      color: #fff;
+      font-family: 'DM Sans', sans-serif;
+      font-size: .95rem;
+      font-weight: 600;
+      cursor: pointer;
+      letter-spacing: 1px;
+      transition: transform .2s, box-shadow .2s, opacity .2s;
+      box-shadow: 0 4px 20px rgba(245, 166, 35, .35);
+      margin-top: 4px;
+    }
+
+    .btn-login:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 28px rgba(245, 166, 35, .45)
+    }
+
+    .btn-login:disabled {
+      opacity: .6;
+      cursor: not-allowed;
+      transform: none
+    }
+
+    .login-error {
+      color: var(--red);
+      font-size: .78rem;
+      margin-top: 12px;
+      min-height: 18px;
+      line-height: 1.4
+    }
+
+    /* ── DASHBOARD ── */
+    #dashboard {
+      display: none;
+      position: relative;
+      z-index: 1;
+      min-height: 100vh;
+      padding: 28px 24px 60px
+    }
+
+    .dash-hdr {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      max-width: 1200px;
+      margin: 0 auto 24px;
+      flex-wrap: wrap;
+      gap: 12px
+    }
+
+    .dash-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.5rem;
+      font-weight: 900;
+      color: var(--a)
+    }
+
+    .dash-title span {
+      display: block;
+      font-size: .72rem;
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 400;
+      color: var(--tx2);
+      margin-top: 2px
+    }
+
+    .hdr-right {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap
+    }
+
+    .user-pill {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      background: var(--gl2);
+      border: 1px solid var(--gb2);
+      border-radius: 8px;
+      font-size: .75rem;
+      color: var(--tx2)
+    }
+
+    .user-pill i {
+      color: var(--a)
+    }
+
+    .btn-sm {
+      padding: 8px 16px;
+      border-radius: 8px;
+      border: 1px solid var(--gb2);
+      background: var(--gl);
+      color: var(--tx);
+      font-family: 'DM Sans', sans-serif;
+      font-size: .78rem;
+      cursor: pointer;
+      transition: background .2s, border-color .2s;
+      backdrop-filter: blur(6px)
+    }
+
+    .btn-sm:hover {
+      background: rgba(255, 200, 80, .1);
+      border-color: var(--a)
+    }
+
+    .btn-danger {
+      border-color: rgba(255, 92, 92, .25);
+      color: #ff8080
+    }
+
+    .btn-danger:hover {
+      background: rgba(255, 92, 92, .1);
+      border-color: var(--red)
+    }
+
+    /* stat cards */
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 12px;
+      max-width: 1200px;
+      margin: 0 auto 24px
+    }
+
+    .sc {
+      background: var(--gl2);
+      border: 1px solid var(--gb2);
+      border-radius: var(--r2);
+      padding: 16px 18px
+    }
+
+    .sc .lbl {
+      font-size: .66rem;
+      color: var(--tx3);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 6px
+    }
+
+    .sc .val {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.8rem;
+      font-weight: 900;
+      color: var(--a)
+    }
+
+    .sc .sub {
+      font-size: .67rem;
+      color: var(--tx3);
+      margin-top: 3px
+    }
+
+    /* filter */
+    .filter-bar {
+      max-width: 1200px;
+      margin: 0 auto 20px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center
+    }
+
+    .filter-bar label {
+      font-size: .78rem;
+      color: var(--tx2)
+    }
+
+    .filter-bar select {
+      background: rgba(255, 255, 255, .05);
+      border: 1px solid var(--gb2);
+      border-radius: 8px;
+      padding: 7px 12px;
+      color: var(--tx);
+      font-family: 'DM Sans', sans-serif;
+      font-size: .8rem;
+      outline: none;
+      cursor: pointer;
+      transition: border-color .2s
+    }
+
+    .filter-bar select:focus {
+      border-color: var(--a)
+    }
+
+    .filter-bar select option {
+      background: #181200
+    }
+
+    /* chart */
+    .chart-panel {
+      max-width: 1200px;
+      margin: 0 auto 24px;
+      background: var(--gl2);
+      border: 1px solid var(--gb2);
+      border-radius: var(--r);
+      padding: 22px 24px
+    }
+
+    .chart-title {
+      font-size: .78rem;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--tx2);
+      margin-bottom: 18px;
+      display: flex;
+      align-items: center;
+      gap: 8px
+    }
+
+    .chart-title i {
+      color: var(--a)
+    }
+
+    .chart-wrap {
+      position: relative;
+      height: 300px
+    }
+
+    /* table */
+    .table-panel {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: var(--gl2);
+      border: 1px solid var(--gb2);
+      border-radius: var(--r);
+      overflow: hidden
+    }
+
+    .table-hdr {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--gb2);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px
+    }
+
+    .table-hdr h3 {
+      font-size: .78rem;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--tx2)
+    }
+
+    #search-input {
+      background: rgba(255, 255, 255, .04);
+      border: 1px solid var(--gb2);
+      border-radius: 8px;
+      padding: 7px 13px;
+      color: var(--tx);
+      font-family: 'DM Sans', sans-serif;
+      font-size: .78rem;
+      outline: none;
+      width: 200px;
+      transition: border-color .2s
+    }
+
+    #search-input:focus {
+      border-color: var(--a)
+    }
+
+    #search-input::placeholder {
+      color: var(--tx3)
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: .78rem
+    }
+
+    thead th {
+      padding: 10px 16px;
+      text-align: left;
+      color: var(--tx3);
+      font-weight: 600;
+      font-size: .66rem;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      border-bottom: 1px solid var(--gb2);
+      white-space: nowrap
+    }
+
+    tbody tr {
+      border-bottom: 1px solid rgba(255, 200, 80, .04);
+      transition: background .15s
+    }
+
+    tbody tr:hover {
+      background: rgba(255, 200, 80, .04)
+    }
+
+    tbody tr:last-child {
+      border-bottom: none
+    }
+
+    tbody td {
+      padding: 11px 16px;
+      color: var(--tx2);
+      max-width: 200px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap
+    }
+
+    tbody td.page {
+      color: var(--al);
+      font-size: .75rem
+    }
+
+    .table-footer {
+      padding: 12px 20px;
+      border-top: 1px solid var(--gb2);
+      font-size: .72rem;
+      color: var(--tx3);
+      text-align: right
+    }
+
+    /* loader */
+    .loader {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      padding: 48px;
+      color: var(--tx3);
+      font-size: .82rem
+    }
+
+    .spinner {
+      width: 32px;
+      height: 32px;
+      border: 3px solid var(--gb2);
+      border-top-color: var(--a);
+      border-radius: 50%;
+      animation: spin .8s linear infinite
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg)
+      }
+    }
+
+    /* stats panel */
+    .stats-panel {
+      max-width: 1200px;
+      margin: 0 auto 20px;
+      background: var(--gl2);
+      border: 1px solid var(--gb2);
+      border-radius: var(--r);
+      padding: 15px 20px;
+      display: none
+    }
+
+    .stats-panel.open {
+      display: block
+    }
+
+    .sp-title {
+      font-size: .72rem;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--tx2);
+      margin-bottom: 12px
+    }
+
+    .wbars {
+      display: flex;
+      gap: 6px;
+      align-items: flex-end;
+      height: 75px
+    }
+
+    .wbw {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px
+    }
+
+    .wbbg {
+      flex: 1;
+      width: 100%;
+      background: rgba(255, 255, 255, .05);
+      border-radius: 4px;
+      display: flex;
+      align-items: flex-end;
+      overflow: hidden
+    }
+
+    .wbf {
+      width: 100%;
+      background: linear-gradient(180deg, var(--a), var(--ad));
+      border-radius: 4px;
+      transition: height .5s ease
+    }
+
+    .wday {
+      font-size: .6rem;
+      color: var(--tx3)
+    }
+
+    .wnum {
+      font-size: .62rem;
+      color: var(--a);
+      font-weight: 600
+    }
+
+    /* toast */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(16px);
+      background: #181200;
+      border: 1px solid var(--gb);
+      border-radius: 30px;
+      padding: 10px 20px;
+      font-size: .8rem;
+      color: var(--tx);
+      box-shadow: 0 8px 30px rgba(0, 0, 0, .5);
+      z-index: 999;
+      opacity: 0;
+      transition: opacity .3s, transform .3s;
+      pointer-events: none;
+      white-space: nowrap
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0)
+    }
+
+    .live-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--green);
+      animation: pdot 2s ease-in-out infinite;
+      display: inline-block;
+      margin-right: 4px
+    }
+
+    @keyframes pdot {
+
+      0%,
+      100% {
+        box-shadow: 0 0 0 0 rgba(76, 175, 80, .5)
+      }
+
+      50% {
+        box-shadow: 0 0 0 6px rgba(76, 175, 80, 0)
+      }
+    }
+
+    ::-webkit-scrollbar {
+      width: 4px
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--gb);
+      border-radius: 10px
+    }
+  </style>
+</head>
+
+<body>
+  <div class="bgl"></div>
+
+  <!-- ══ LOGIN ══ -->
+  <div id="login-screen">
+    <div class="login-box">
+      <div class="login-icon">🔐</div>
+      <h1>Admin Panel</h1>
+      <p>FocusBoard Visitor Analytics</p>
+
+      <div class="inp-wrap">
+        <i class="fas fa-envelope"></i>
+        <input type="email" id="email-input" placeholder="Admin email address" autocomplete="email">
+      </div>
+      <div class="inp-wrap">
+        <i class="fas fa-lock"></i>
+        <input type="password" id="pwd-input" placeholder="Password" autocomplete="current-password">
+      </div>
+
+      <button class="btn-login" id="login-btn" onclick="doLogin()">
+        <i class="fas fa-sign-in-alt"></i> Login
+      </button>
+      <div class="login-error" id="login-error"></div>
+    </div>
+  </div>
+
+  <!-- ══ DASHBOARD ══ -->
+  <div id="dashboard">
+    <div class="dash-hdr">
+      <div class="dash-title">
+        Analytics
+        <span><span class="live-dot"></span>Live — Firestore</span>
+      </div>
+      <div class="hdr-right">
+        <div class="user-pill"><i class="fas fa-user"></i><span id="admin-email">admin</span></div>
+        <button class="btn-sm" onclick="loadData()"><i class="fas fa-rotate-right"></i> Refresh</button>
+        <button class="btn-sm" onclick="exportCSV()"><i class="fas fa-download"></i> Export CSV</button>
+        <button class="btn-sm btn-danger" onclick="doLogout()"><i class="fas fa-sign-out-alt"></i> Logout</button>
+      </div>
+    </div>
+
+    <div class="stat-grid">
+      <div class="sc">
+        <div class="lbl">Total Visits</div>
+        <div class="val" id="stat-total">—</div>
+        <div class="sub">all time</div>
+      </div>
+      <div class="sc">
+        <div class="lbl">Today</div>
+        <div class="val" id="stat-today">—</div>
+        <div class="sub">visits today</div>
+      </div>
+      <div class="sc">
+        <div class="lbl">This Week</div>
+        <div class="val" id="stat-week">—</div>
+        <div class="sub">last 7 days</div>
+      </div>
+      <div class="sc">
+        <div class="lbl">Unique Pages</div>
+        <div class="val" id="stat-pages">—</div>
+        <div class="sub">distinct URLs</div>
+      </div>
+    </div>
+
+    <div class="filter-bar">
+      <label>View:</label>
+      <select id="chart-mode" onchange="redrawChart()">
+        <option value="daily">Daily (last 14 days)</option>
+        <option value="hourly">Hourly (last 24 hours)</option>
+      </select>
+      <label style="margin-left:12px">Page:</label>
+      <select id="page-filter" onchange="redrawChart()">
+        <option value="all">All Pages</option>
+      </select>
+      <button class="btn-sm" onclick="toggleStats()" style="margin-left:auto"><i class="fas fa-chart-bar"></i>
+        Weekly</button>
+    </div>
+
+    <div class="stats-panel" id="statsPanel">
+      <div class="sp-title"><i class="fas fa-chart-bar"></i> &nbsp;This Week</div>
+      <div class="wbars" id="weekBars"></div>
+    </div>
+
+    <div class="chart-panel">
+      <div class="chart-title"><i class="fas fa-chart-line"></i> Traffic Trend</div>
+      <div class="chart-wrap"><canvas id="visitorChart"></canvas></div>
+    </div>
+
+    <div class="table-panel">
+      <div class="table-hdr">
+        <h3><i class="fas fa-list"></i> &nbsp;Recent Visits</h3>
+        <input type="text" id="search-input" placeholder="Search page or referrer…" oninput="filterTable()">
+      </div>
+      <div id="table-container">
+        <div class="loader">
+          <div class="spinner"></div>Loading…
+        </div>
+      </div>
+      <div class="table-footer" id="table-footer"></div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script type="module" src="admin.js"></script>
+</body>
+
+</html>

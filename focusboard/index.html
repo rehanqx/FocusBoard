@@ -1,0 +1,2022 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FocusBoard — Stay Deep, Stay Done</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=DM+Sans:wght@300;400;500;600&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        :root {
+            --a: #f5a623;
+            --ad: #c97d10;
+            --al: #ffd580;
+            --ag: rgba(245, 166, 35, .14);
+            --bg: #0d0a00;
+            --bg2: #181200;
+            --bg3: #221a00;
+            --gl: rgba(255, 255, 255, .06);
+            --gl2: rgba(255, 255, 255, .03);
+            --gb: rgba(255, 200, 80, .13);
+            --gb2: rgba(255, 200, 80, .07);
+            --tx: #fff8e8;
+            --tx2: rgba(255, 248, 232, .58);
+            --tx3: rgba(255, 248, 232, .3);
+            --red: #ff5c5c;
+            --green: #4caf50;
+            --blue: #4fa3e8;
+            --purple: #b06ee0;
+            --r: 14px;
+            --r2: 10px;
+            --r3: 8px;
+            --sh: 0 10px 50px rgba(0, 0, 0, .55);
+        }
+
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0
+        }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--bg);
+            color: var(--tx);
+            min-height: 100vh;
+            overflow-x: hidden
+        }
+
+        .bgl {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            background:
+                radial-gradient(ellipse 65% 55% at 12% 20%, rgba(190, 110, 0, .16) 0%, transparent 65%),
+                radial-gradient(ellipse 50% 60% at 88% 80%, rgba(150, 85, 0, .11) 0%, transparent 65%),
+                linear-gradient(155deg, #0d0a00 0%, #181200 55%, #080600 100%)
+        }
+
+        .noise {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            opacity: .022;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+            background-size: 200px 200px
+        }
+
+        #pg-land,
+        #pg-board,
+        #pg-focus {
+            position: relative;
+            z-index: 1
+        }
+
+        #pg-board {
+            display: none;
+            min-height: 100vh;
+            padding: 26px 20px 80px
+        }
+
+        #pg-focus {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 200;
+            background: var(--bg);
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 22px;
+            padding: 40px 20px;
+            text-align: center
+        }
+
+        #pg-land {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+            gap: 0
+        }
+
+        .orb {
+            position: absolute;
+            border-radius: 50%;
+            pointer-events: none;
+            animation: float ease-in-out infinite
+        }
+
+        .orb1 {
+            width: 320px;
+            height: 320px;
+            background: radial-gradient(circle, rgba(245, 166, 35, .09), transparent 70%);
+            top: -80px;
+            left: -100px;
+            animation-duration: 8s
+        }
+
+        .orb2 {
+            width: 250px;
+            height: 250px;
+            background: radial-gradient(circle, rgba(245, 166, 35, .06), transparent 70%);
+            bottom: -60px;
+            right: -80px;
+            animation-duration: 11s;
+            animation-delay: -3s
+        }
+
+        .orb3 {
+            width: 180px;
+            height: 180px;
+            background: radial-gradient(circle, rgba(255, 140, 0, .07), transparent 70%);
+            top: 40%;
+            right: 10%;
+            animation-duration: 9s;
+            animation-delay: -5s
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translateY(0) scale(1)
+            }
+
+            50% {
+                transform: translateY(-22px) scale(1.04)
+            }
+        }
+
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(32px)
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0)
+            }
+        }
+
+        .land-inner {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0;
+            animation: fadeUp .9s ease both;
+            position: relative
+        }
+
+        .land-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            padding: 6px 16px;
+            border-radius: 30px;
+            background: rgba(245, 166, 35, .1);
+            border: 1px solid rgba(245, 166, 35, .22);
+            font-size: .72rem;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: var(--a);
+            margin-bottom: 28px;
+            animation: fadeUp .9s .1s ease both
+        }
+
+        .land-h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(2.8rem, 9vw, 5.8rem);
+            font-weight: 900;
+            line-height: 1.05;
+            text-align: center;
+            color: var(--tx);
+            letter-spacing: -1px
+        }
+
+        .land-h1 em {
+            font-style: italic;
+            color: var(--a);
+            text-shadow: 0 0 60px rgba(245, 166, 35, .3)
+        }
+
+        .land-sub {
+            font-size: clamp(.9rem, 2.5vw, 1.15rem);
+            color: var(--tx2);
+            text-align: center;
+            max-width: 480px;
+            line-height: 1.7;
+            margin: 18px 0 44px;
+            animation: fadeUp .9s .2s ease both
+        }
+
+        .btn-cta {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            padding: 18px 44px;
+            border-radius: 50px;
+            background: linear-gradient(135deg, var(--a) 0%, var(--ad) 100%);
+            border: none;
+            color: #fff;
+            font-family: 'Playfair Display', serif;
+            font-size: 1.15rem;
+            font-weight: 700;
+            letter-spacing: .5px;
+            cursor: pointer;
+            transition: transform .25s, box-shadow .25s;
+            box-shadow: 0 6px 30px rgba(245, 166, 35, .45);
+            animation: fadeUp .9s .35s ease both;
+            position: relative;
+            overflow: hidden
+        }
+
+        .btn-cta::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(255, 255, 255, .15), transparent);
+            opacity: 0;
+            transition: opacity .25s
+        }
+
+        .btn-cta:hover {
+            transform: translateY(-4px) scale(1.03);
+            box-shadow: 0 14px 45px rgba(245, 166, 35, .55)
+        }
+
+        .btn-cta:hover::before {
+            opacity: 1
+        }
+
+        .btn-cta i {
+            transition: transform .25s
+        }
+
+        .btn-cta:hover i {
+            transform: translateX(4px)
+        }
+
+        .btn-cta-pulse {
+            position: absolute;
+            inset: 0;
+            border-radius: 50px;
+            border: 2px solid rgba(245, 166, 35, .5);
+            animation: pulse 2.5s ease-out infinite
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+                opacity: .7
+            }
+
+            100% {
+                transform: scale(1.18);
+                opacity: 0
+            }
+        }
+
+        .btn-ghost {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 11px 26px;
+            border-radius: 50px;
+            background: transparent;
+            border: 1px solid var(--gb);
+            color: var(--tx2);
+            font-family: 'DM Sans', sans-serif;
+            font-size: .85rem;
+            cursor: pointer;
+            transition: background .2s, border-color .2s, color .2s;
+            margin-top: 14px;
+            animation: fadeUp .9s .45s ease both
+        }
+
+        .btn-ghost:hover {
+            background: var(--ag);
+            border-color: var(--a);
+            color: var(--a)
+        }
+
+        .land-pills {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 52px;
+            animation: fadeUp .9s .55s ease both
+        }
+
+        .pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 7px 15px;
+            border-radius: 30px;
+            background: var(--gl2);
+            border: 1px solid var(--gb2);
+            font-size: .73rem;
+            color: var(--tx2)
+        }
+
+        .pill i {
+            color: var(--a);
+            font-size: .78rem
+        }
+
+        /* ── STREAK DISPLAY ON LANDING ── */
+        .land-stats {
+            display: flex;
+            gap: 40px;
+            margin-top: 60px;
+            animation: fadeUp .9s .65s ease both;
+            flex-wrap: wrap;
+            justify-content: center
+        }
+
+        .lst {
+            text-align: center
+        }
+
+        .lst-num {
+            font-family: 'Playfair Display', serif;
+            font-size: 2rem;
+            font-weight: 900;
+            color: var(--a)
+        }
+
+        .lst-lbl {
+            font-size: .72rem;
+            color: var(--tx3);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 2px
+        }
+
+        .land-line {
+            width: 1px;
+            background: var(--gb2);
+            height: 40px;
+            align-self: center
+        }
+
+        /* ── STREAK FIRE ANIMATION ── */
+        @keyframes fireGlow {
+
+            0%,
+            100% {
+                text-shadow: 0 0 8px rgba(245, 166, 35, .6), 0 0 20px rgba(245, 166, 35, .3)
+            }
+
+            50% {
+                text-shadow: 0 0 16px rgba(255, 100, 0, .9), 0 0 40px rgba(255, 100, 0, .5)
+            }
+        }
+
+        .streak-fire {
+            animation: fireGlow 1.5s ease-in-out infinite
+        }
+
+        /* ── STREAK BUMP ANIMATION ── */
+        @keyframes streakBump {
+            0% {
+                transform: scale(1)
+            }
+
+            40% {
+                transform: scale(1.5)
+            }
+
+            70% {
+                transform: scale(.9)
+            }
+
+            100% {
+                transform: scale(1)
+            }
+        }
+
+        .streak-bump {
+            animation: streakBump .5s ease both
+        }
+
+        /* BOARD */
+        .b-hdr {
+            width: 100%;
+            max-width: 1340px;
+            margin: 0 auto 18px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px
+        }
+
+        .b-logo {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.35rem;
+            font-weight: 900;
+            color: var(--a);
+            cursor: pointer;
+            transition: opacity .2s
+        }
+
+        .b-logo:hover {
+            opacity: .75
+        }
+
+        .b-logo span {
+            display: block;
+            font-size: .72rem;
+            font-family: 'DM Sans', sans-serif;
+            font-weight: 400;
+            color: var(--tx2);
+            margin-top: 1px
+        }
+
+        .h-acts {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap
+        }
+
+        /* ── STREAK BADGE (board header) ── */
+        .streak-b {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 13px;
+            border-radius: 30px;
+            background: rgba(245, 166, 35, .1);
+            border: 1px solid rgba(245, 166, 35, .22);
+            font-size: .78rem;
+            font-weight: 600;
+            color: var(--a);
+            transition: all .3s
+        }
+
+        .streak-b.active {
+            background: rgba(245, 166, 35, .2);
+            border-color: rgba(245, 166, 35, .5);
+            box-shadow: 0 0 16px rgba(245, 166, 35, .25)
+        }
+
+        .streak-b .fire-icon {
+            display: inline-block
+        }
+
+        .streak-b.active .fire-icon {
+            animation: fireGlow 1.5s ease-in-out infinite
+        }
+
+        .stats-row {
+            width: 100%;
+            max-width: 1340px;
+            margin: 0 auto 16px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(125px, 1fr));
+            gap: 9px
+        }
+
+        .sc {
+            background: var(--gl2);
+            border: 1px solid var(--gb2);
+            border-radius: var(--r2);
+            padding: 11px 14px
+        }
+
+        .sc-lbl {
+            font-size: .65rem;
+            color: var(--tx3);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 3px
+        }
+
+        .sc-val {
+            font-size: 1.35rem;
+            font-weight: 700;
+            color: var(--a);
+            font-family: 'Playfair Display', serif
+        }
+
+        .prog-wrap {
+            width: 100%;
+            max-width: 1340px;
+            margin: 0 auto 20px
+        }
+
+        .prog-top {
+            display: flex;
+            justify-content: space-between;
+            font-size: .7rem;
+            color: var(--tx3);
+            margin-bottom: 5px
+        }
+
+        .prog-bar {
+            height: 4px;
+            background: rgba(255, 255, 255, .06);
+            border-radius: 50px;
+            overflow: hidden
+        }
+
+        .prog-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--a), #ff9800);
+            border-radius: 50px;
+            transition: width .6s cubic-bezier(.4, 0, .2, 1)
+        }
+
+        .pomo-bar {
+            width: 100%;
+            max-width: 1340px;
+            margin: 0 auto 22px;
+            background: var(--gl2);
+            border: 1px solid var(--gb2);
+            border-radius: var(--r);
+            padding: 13px 20px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            flex-wrap: wrap
+        }
+
+        .pomo-ring {
+            position: relative;
+            width: 40px;
+            height: 40px;
+            flex-shrink: 0
+        }
+
+        .pomo-ring svg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            transform: rotate(-90deg)
+        }
+
+        .pomo-ring circle {
+            fill: none;
+            stroke-width: 3
+        }
+
+        .pr-bg {
+            stroke: rgba(255, 255, 255, .09)
+        }
+
+        .pr-fg {
+            stroke: var(--a);
+            stroke-linecap: round;
+            transition: stroke-dashoffset .5s linear
+        }
+
+        .pomo-time {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.9rem;
+            font-weight: 900;
+            color: var(--a);
+            min-width: 76px
+        }
+
+        .pomo-time.brk {
+            color: var(--green)
+        }
+
+        .pomo-status {
+            font-size: .68rem;
+            color: var(--tx2);
+            text-transform: uppercase;
+            letter-spacing: .8px
+        }
+
+        .pomo-tname {
+            font-size: .78rem;
+            color: var(--al);
+            font-style: italic;
+            flex: 1;
+            min-width: 100px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis
+        }
+
+        .pomo-dots {
+            display: flex;
+            gap: 5px
+        }
+
+        .pdot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, .12);
+            transition: background .3s
+        }
+
+        .pdot.dn {
+            background: var(--a)
+        }
+
+        .pomo-btns {
+            display: flex;
+            gap: 7px;
+            margin-left: auto
+        }
+
+        .stats-panel {
+            width: 100%;
+            max-width: 1340px;
+            margin: 0 auto 18px;
+            background: var(--gl2);
+            border: 1px solid var(--gb2);
+            border-radius: var(--r);
+            padding: 15px 20px;
+            display: none
+        }
+
+        .stats-panel.open {
+            display: block
+        }
+
+        .sp-title {
+            font-size: .72rem;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: var(--tx2);
+            margin-bottom: 12px
+        }
+
+        .wbars {
+            display: flex;
+            gap: 6px;
+            align-items: flex-end;
+            height: 75px
+        }
+
+        .wbw {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px
+        }
+
+        .wbbg {
+            flex: 1;
+            width: 100%;
+            background: rgba(255, 255, 255, .05);
+            border-radius: 4px;
+            display: flex;
+            align-items: flex-end;
+            overflow: hidden
+        }
+
+        .wbf {
+            width: 100%;
+            background: linear-gradient(180deg, var(--a), var(--ad));
+            border-radius: 4px;
+            transition: height .5s ease
+        }
+
+        .wday {
+            font-size: .6rem;
+            color: var(--tx3)
+        }
+
+        .wnum {
+            font-size: .62rem;
+            color: var(--a);
+            font-weight: 600
+        }
+
+        .kanban {
+            width: 100%;
+            max-width: 1340px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 13px
+        }
+
+        @media(max-width:960px) {
+            .kanban {
+                grid-template-columns: repeat(2, 1fr)
+            }
+        }
+
+        @media(max-width:540px) {
+            .kanban {
+                grid-template-columns: 1fr
+            }
+        }
+
+        .col-wrap {
+            display: flex;
+            flex-direction: column;
+            gap: 9px
+        }
+
+        .col-hd {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 9px 12px;
+            border-radius: var(--r2);
+            font-weight: 600;
+            font-size: .7rem;
+            letter-spacing: 1.2px;
+            text-transform: uppercase
+        }
+
+        .badge {
+            padding: 2px 8px;
+            border-radius: 20px;
+            font-size: .63rem;
+            font-weight: 700;
+            background: rgba(0, 0, 0, .3)
+        }
+
+        .col-todo .col-hd {
+            background: rgba(245, 166, 35, .13);
+            color: var(--a)
+        }
+
+        .col-prog .col-hd {
+            background: rgba(79, 163, 232, .12);
+            color: var(--blue)
+        }
+
+        .col-review .col-hd {
+            background: rgba(176, 110, 224, .12);
+            color: var(--purple)
+        }
+
+        .col-done .col-hd {
+            background: rgba(76, 175, 80, .11);
+            color: var(--green)
+        }
+
+        .cards-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            min-height: 65px;
+            padding: 2px 0;
+            border-radius: var(--r2);
+            transition: background .2s
+        }
+
+        .cards-list.drag-over {
+            background: rgba(245, 166, 35, .06)
+        }
+
+        .task-card {
+            background: var(--gl);
+            border: 1px solid var(--gb2);
+            border-radius: var(--r2);
+            padding: 12px;
+            cursor: grab;
+            transition: transform .2s, box-shadow .2s, opacity .15s;
+            position: relative;
+            animation: cardIn .3s ease both;
+            backdrop-filter: blur(8px)
+        }
+
+        @keyframes cardIn {
+            from {
+                opacity: 0;
+                transform: translateY(7px) scale(.97)
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1)
+            }
+        }
+
+        .task-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 28px rgba(0, 0, 0, .4)
+        }
+
+        .task-card.dragging {
+            opacity: .3;
+            cursor: grabbing
+        }
+
+        .task-card.pri-high {
+            border-left: 3px solid var(--red)
+        }
+
+        .task-card.pri-med {
+            border-left: 3px solid var(--a)
+        }
+
+        .task-card.pri-low {
+            border-left: 3px solid var(--blue)
+        }
+
+        .card-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 7px
+        }
+
+        .card-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 6px;
+            display: grid;
+            place-content: center;
+            font-size: .72rem
+        }
+
+        .col-todo .card-icon {
+            background: rgba(245, 166, 35, .17);
+            color: var(--a)
+        }
+
+        .col-prog .card-icon {
+            background: rgba(79, 163, 232, .17);
+            color: var(--blue)
+        }
+
+        .col-review .card-icon {
+            background: rgba(176, 110, 224, .17);
+            color: var(--purple)
+        }
+
+        .col-done .card-icon {
+            background: rgba(76, 175, 80, .17);
+            color: var(--green)
+        }
+
+        .pri-tag {
+            font-size: .58rem;
+            padding: 2px 7px;
+            border-radius: 20px;
+            font-weight: 700
+        }
+
+        .pri-high .pri-tag {
+            background: rgba(255, 92, 92, .17);
+            color: #ff8888
+        }
+
+        .pri-med .pri-tag {
+            background: rgba(245, 166, 35, .17);
+            color: var(--a)
+        }
+
+        .pri-low .pri-tag {
+            background: rgba(79, 163, 232, .17);
+            color: var(--blue)
+        }
+
+        .card-title {
+            font-size: .84rem;
+            font-weight: 600;
+            line-height: 1.35;
+            margin-bottom: 3px
+        }
+
+        .card-desc {
+            font-size: .7rem;
+            color: var(--tx2);
+            line-height: 1.5;
+            margin-bottom: 9px
+        }
+
+        .notes-prev {
+            font-size: .66rem;
+            color: var(--tx3);
+            font-style: italic;
+            border-left: 2px solid var(--gb);
+            padding-left: 6px;
+            margin-bottom: 9px;
+            display: none
+        }
+
+        .notes-prev.show {
+            display: block
+        }
+
+        .card-foot {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px
+        }
+
+        .btn-done {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 5px 12px;
+            border-radius: 20px;
+            border: 1px solid rgba(76, 175, 80, .35);
+            background: rgba(76, 175, 80, .1);
+            color: #81c784;
+            font-size: .68rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background .2s, border-color .2s, transform .15s;
+            letter-spacing: .3px;
+            white-space: nowrap
+        }
+
+        .btn-done:hover {
+            background: rgba(76, 175, 80, .22);
+            border-color: rgba(76, 175, 80, .6);
+            transform: scale(1.04)
+        }
+
+        .btn-done.completed {
+            background: rgba(76, 175, 80, .2);
+            border-color: rgba(76, 175, 80, .5);
+            color: #66bb6a;
+            cursor: default
+        }
+
+        .btn-done.completed:hover {
+            transform: none
+        }
+
+        .card-acts {
+            display: flex;
+            gap: 5px;
+            opacity: 0;
+            transition: opacity .2s
+        }
+
+        .task-card:hover .card-acts {
+            opacity: 1
+        }
+
+        .cb {
+            width: 22px;
+            height: 22px;
+            border-radius: 5px;
+            border: none;
+            background: rgba(255, 255, 255, .07);
+            color: var(--tx3);
+            font-size: .6rem;
+            cursor: pointer;
+            display: grid;
+            place-content: center;
+            transition: background .15s, color .15s
+        }
+
+        .cb:hover {
+            background: rgba(255, 92, 92, .18);
+            color: var(--red)
+        }
+
+        .cb.edit:hover {
+            background: rgba(245, 166, 35, .18);
+            color: var(--a)
+        }
+
+        .cb.foc:hover {
+            background: rgba(79, 163, 232, .18);
+            color: var(--blue)
+        }
+
+        .cb.note:hover {
+            background: rgba(76, 175, 80, .18);
+            color: var(--green)
+        }
+
+        .btn-sm {
+            padding: 7px 14px;
+            border-radius: var(--r3);
+            border: 1px solid var(--gb2);
+            background: var(--gl);
+            color: var(--tx);
+            font-family: 'DM Sans', sans-serif;
+            font-size: .76rem;
+            cursor: pointer;
+            transition: background .2s, border-color .2s;
+            backdrop-filter: blur(5px)
+        }
+
+        .btn-sm:hover {
+            background: rgba(255, 200, 80, .09);
+            border-color: var(--a)
+        }
+
+        .btn-add {
+            background: linear-gradient(135deg, var(--a), var(--ad));
+            border: none;
+            color: #fff;
+            font-weight: 600
+        }
+
+        .btn-add:hover {
+            opacity: .88;
+            background: linear-gradient(135deg, var(--a), var(--ad))
+        }
+
+        .btn-stats {
+            border-color: rgba(245, 166, 35, .22);
+            color: var(--a)
+        }
+
+        .btn-analytics {
+            border-color: rgba(79, 163, 232, .28);
+            color: #6db8f0;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px
+        }
+
+        .btn-analytics:hover {
+            background: rgba(79, 163, 232, .1);
+            border-color: #4fa3e8;
+            color: #90cef5
+        }
+
+        .moverlay {
+            position: fixed;
+            inset: 0;
+            z-index: 150;
+            background: rgba(0, 0, 0, .72);
+            backdrop-filter: blur(7px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px
+        }
+
+        .moverlay.open {
+            display: flex
+        }
+
+        .modal {
+            background: #161000;
+            border: 1px solid var(--gb);
+            border-radius: var(--r);
+            padding: 26px;
+            width: min(460px, 100%);
+            box-shadow: 0 22px 70px rgba(0, 0, 0, .7);
+            animation: fadeUp .3s ease both;
+            max-height: 90vh;
+            overflow-y: auto
+        }
+
+        .modal h3 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.15rem;
+            color: var(--a);
+            margin-bottom: 17px;
+            display: flex;
+            align-items: center;
+            gap: 8px
+        }
+
+        .modal label {
+            display: block;
+            font-size: .72rem;
+            color: var(--tx2);
+            margin-bottom: 4px;
+            text-transform: uppercase;
+            letter-spacing: .5px
+        }
+
+        .modal input,
+        .modal select,
+        .modal textarea {
+            width: 100%;
+            background: rgba(255, 255, 255, .05);
+            border: 1px solid rgba(255, 200, 80, .16);
+            border-radius: var(--r3);
+            padding: 10px 13px;
+            color: var(--tx);
+            font-family: 'DM Sans', sans-serif;
+            font-size: .87rem;
+            outline: none;
+            margin-bottom: 12px;
+            transition: border-color .2s;
+            resize: vertical
+        }
+
+        .modal input:focus,
+        .modal select:focus,
+        .modal textarea:focus {
+            border-color: var(--a)
+        }
+
+        .modal select option {
+            background: #161000
+        }
+
+        .mbtns {
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end;
+            margin-top: 4px
+        }
+
+        .pri-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px
+        }
+
+        .po {
+            flex: 1;
+            padding: 8px;
+            border-radius: var(--r3);
+            border: 1px solid rgba(255, 255, 255, .09);
+            background: rgba(255, 255, 255, .03);
+            cursor: pointer;
+            text-align: center;
+            font-size: .73rem;
+            font-weight: 600;
+            transition: background .2s, border-color .2s;
+            color: var(--tx3)
+        }
+
+        .po[data-p=high].sel {
+            background: rgba(255, 92, 92, .18);
+            border-color: var(--red);
+            color: var(--red)
+        }
+
+        .po[data-p=med].sel {
+            background: rgba(245, 166, 35, .18);
+            border-color: var(--a);
+            color: var(--a)
+        }
+
+        .po[data-p=low].sel {
+            background: rgba(79, 163, 232, .18);
+            border-color: var(--blue);
+            color: var(--blue)
+        }
+
+        #pg-focus {
+            background: var(--bg)
+        }
+
+        .foc-exit {
+            position: fixed;
+            top: 18px;
+            right: 18px;
+            background: rgba(255, 255, 255, .06);
+            border: 1px solid rgba(255, 255, 255, .1);
+            border-radius: 30px;
+            padding: 8px 16px;
+            color: var(--tx2);
+            font-size: .76rem;
+            cursor: pointer;
+            transition: background .2s;
+            z-index: 10
+        }
+
+        .foc-exit:hover {
+            background: rgba(255, 255, 255, .11)
+        }
+
+        .foc-name {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(1.7rem, 5.5vw, 3rem);
+            font-weight: 900;
+            color: var(--a);
+            text-shadow: 0 0 50px rgba(245, 166, 35, .22);
+            max-width: 600px;
+            line-height: 1.25
+        }
+
+        .foc-desc {
+            font-size: .95rem;
+            color: var(--tx2);
+            max-width: 380px;
+            line-height: 1.65
+        }
+
+        .foc-timer {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(4.5rem, 14vw, 7.5rem);
+            font-weight: 900;
+            color: var(--a);
+            letter-spacing: 6px;
+            line-height: 1;
+            text-shadow: 0 0 70px rgba(245, 166, 35, .18)
+        }
+
+        .foc-timer.brk {
+            color: var(--green);
+            text-shadow: 0 0 70px rgba(76, 175, 80, .18)
+        }
+
+        .foc-lbl {
+            font-size: .72rem;
+            color: var(--tx3);
+            letter-spacing: 2.5px;
+            text-transform: uppercase;
+            margin-top: -8px
+        }
+
+        .foc-dots {
+            display: flex;
+            gap: 10px;
+            justify-content: center
+        }
+
+        .fdot {
+            width: 11px;
+            height: 11px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, .09);
+            transition: background .3s
+        }
+
+        .fdot.dn {
+            background: var(--a)
+        }
+
+        .foc-quote {
+            font-size: .82rem;
+            color: var(--tx3);
+            font-style: italic;
+            max-width: 370px;
+            line-height: 1.65;
+            padding: 15px;
+            border: 1px solid var(--gb2);
+            border-radius: var(--r2);
+            background: var(--gl2)
+        }
+
+        .foc-btns {
+            display: flex;
+            gap: 11px;
+            flex-wrap: wrap;
+            justify-content: center
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 26px;
+            left: 50%;
+            transform: translateX(-50%) translateY(18px);
+            background: #161000;
+            border: 1px solid var(--gb);
+            border-radius: 30px;
+            padding: 9px 20px;
+            font-size: .8rem;
+            color: var(--tx);
+            box-shadow: var(--sh);
+            z-index: 9999;
+            opacity: 0;
+            transition: opacity .3s, transform .3s;
+            pointer-events: none;
+            white-space: nowrap
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0)
+        }
+
+        /* ── STREAK TOAST (special) ── */
+        .toast.streak-toast {
+            background: linear-gradient(135deg, #2a1800, #1a1000);
+            border-color: rgba(245, 166, 35, .5);
+            font-size: .85rem;
+            font-weight: 600;
+            color: var(--a)
+        }
+
+        .cp {
+            position: fixed;
+            top: -10px;
+            width: 9px;
+            height: 9px;
+            border-radius: 2px;
+            animation: cf linear forwards;
+            z-index: 999;
+            pointer-events: none
+        }
+
+        @keyframes cf {
+            to {
+                transform: translateY(110vh) rotate(700deg);
+                opacity: 0
+            }
+        }
+
+        ::-webkit-scrollbar {
+            width: 4px
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--gb);
+            border-radius: 10px
+        }
+
+        .admin-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 9px;
+            margin-top: 36px;
+            padding: 11px 24px;
+            border-radius: 30px;
+            border: 1px solid rgba(245, 166, 35, .22);
+            background: rgba(245, 166, 35, .06);
+            color: var(--a);
+            font-size: .82rem;
+            font-weight: 500;
+            text-decoration: none;
+            letter-spacing: .3px;
+            transition: background .25s, border-color .25s, transform .2s, box-shadow .2s
+        }
+
+        .admin-link:hover {
+            background: rgba(245, 166, 35, .14);
+            border-color: rgba(245, 166, 35, .5);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 22px rgba(245, 166, 35, .18)
+        }
+
+        .admin-link i:last-child {
+            transition: transform .22s
+        }
+
+        .admin-link:hover i:last-child {
+            transform: translateX(5px)
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg)
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="bgl"></div>
+    <div class="noise"></div>
+
+    <!-- ══════════ LANDING ══════════ -->
+    <div id="pg-land">
+        <div class="orb orb1"></div>
+        <div class="orb orb2"></div>
+        <div class="orb orb3"></div>
+
+        <div class="land-inner">
+            <div class="land-badge"><i class="fas fa-fire"></i> Anti-Distraction Productivity</div>
+
+            <h1 class="land-h1" style="animation:fadeUp .9s .1s ease both;opacity:0">
+                Stay Deep.<br><em>Stay Done.</em>
+            </h1>
+
+            <p class="land-sub"></p>
+
+            <button class="btn-cta" onclick="goBoard()">
+                <div class="btn-cta-pulse"></div>
+                <i class="fas fa-bullseye"></i>
+                GO TO FOCUS BOARD
+            </button>
+
+            <button class="btn-ghost" onclick="goBoard()">
+                <i class="fas fa-arrow-right"></i> Jump straight in
+            </button>
+
+            <div class="land-pills">
+                <div class="pill"><i class="fas fa-fire"></i> Streak Counter</div>
+                <div class="pill"><i class="fas fa-clock"></i> Pomodoro Timer</div>
+                <div class="pill"><i class="fas fa-bullseye"></i> Focus Mode</div>
+                <div class="pill"><i class="fas fa-circle-check"></i> Done Tracking</div>
+                <div class="pill"><i class="fas fa-note-sticky"></i> Task Notes</div>
+                <div class="pill"><i class="fas fa-chart-bar"></i> Weekly Stats</div>
+                <div class="pill"><i class="fas fa-floppy-disk"></i> Auto Save</div>
+            </div>
+
+            <div class="land-stats">
+                <div class="lst">
+                    <div class="lst-num" id="ls-total">0</div>
+                    <div class="lst-lbl">Tasks Added</div>
+                </div>
+                <div class="land-line"></div>
+                <div class="lst">
+                    <div class="lst-num" id="ls-done">0</div>
+                    <div class="lst-lbl">Completed</div>
+                </div>
+                <div class="land-line"></div>
+                <div class="lst">
+                    <div class="lst-num" id="ls-pomo">0</div>
+                    <div class="lst-lbl">Pomodoros</div>
+                </div>
+                <div class="land-line"></div>
+                <div class="lst">
+                    <div class="lst-num streak-fire" id="ls-streak">0</div>
+                    <div class="lst-lbl">Day Streak 🔥</div>
+                </div>
+            </div>
+
+            <a href="admin.html" class="admin-link" style="animation:fadeUp .9s .75s ease both">
+                <i class="fas fa-chart-line"></i>
+                View Analytics Dashboard
+                <i class="fas fa-arrow-right"></i>
+            </a>
+        </div>
+    </div>
+
+    <!-- ══════════ BOARD ══════════ -->
+    <div id="pg-board">
+        <div class="b-hdr">
+            <div class="b-logo" onclick="goLand()">
+                FocusBoard
+                <span>← Back to Home</span>
+            </div>
+            <div class="h-acts">
+                <div class="streak-b" id="streakBadge">
+                    <span class="fire-icon">🔥</span>
+                    <span id="streakN">0</span> day streak
+                </div>
+                <button class="btn-sm btn-stats" onclick="toggleStats()"><i class="fas fa-chart-bar"></i> Stats</button>
+                <a href="admin.html" class="btn-sm btn-analytics"><i class="fas fa-chart-line"></i> Analytics</a>
+                <button class="btn-sm btn-add" onclick="openAdd()"><i class="fas fa-plus"></i> Add Task</button>
+            </div>
+        </div>
+
+        <div class="stats-row">
+            <div class="sc">
+                <div class="sc-lbl">Total</div>
+                <div class="sc-val" id="st-tot">0</div>
+            </div>
+            <div class="sc">
+                <div class="sc-lbl">Done</div>
+                <div class="sc-val" id="st-dn">0</div>
+            </div>
+            <div class="sc">
+                <div class="sc-lbl">In Progress</div>
+                <div class="sc-val" id="st-pr">0</div>
+            </div>
+            <div class="sc">
+                <div class="sc-lbl">Pomodoros</div>
+                <div class="sc-val" id="st-po">0</div>
+            </div>
+        </div>
+
+        <div class="stats-panel" id="statsPanel">
+            <div class="sp-title"><i class="fas fa-chart-bar"></i> &nbsp;This Week</div>
+            <div class="wbars" id="weekBars"></div>
+        </div>
+
+        <div class="prog-wrap">
+            <div class="prog-top"><span>Overall Progress</span><span id="progTxt">0%</span></div>
+            <div class="prog-bar">
+                <div class="prog-fill" id="progFill" style="width:0%"></div>
+            </div>
+        </div>
+
+        <div class="pomo-bar">
+            <div class="pomo-ring">
+                <svg width="40" height="40" viewBox="0 0 40 40">
+                    <circle class="pr-bg" cx="20" cy="20" r="17"></circle>
+                    <circle class="pr-fg" id="prFg" cx="20" cy="20" r="17" stroke-dasharray="106.8"
+                        stroke-dashoffset="0"></circle>
+                </svg>
+            </div>
+            <div>
+                <div class="pomo-time" id="pomoT">25:00</div>
+                <div class="pomo-status" id="pomoS">Ready to Focus</div>
+            </div>
+            <div class="pomo-tname" id="pomoN">No task selected</div>
+            <div class="pomo-dots" id="pomoDots"></div>
+            <div class="pomo-btns">
+                <button class="btn-sm" id="pomoBtn" onclick="togglePomo()"><i class="fas fa-play"></i> Start</button>
+                <button class="btn-sm" onclick="resetPomo()"><i class="fas fa-rotate-left"></i></button>
+            </div>
+        </div>
+
+        <div class="kanban">
+            <div class="col-wrap col-todo">
+                <div class="col-hd"><span><i class="fas fa-circle-dot"></i> To Do</span><span class="badge"
+                        id="bd-todo">0</span></div>
+                <div class="cards-list" id="list-todo" ondragover="dOv(event)" ondrop="dDr(event,'todo')"
+                    ondragleave="dLv(event)"></div>
+            </div>
+            <div class="col-wrap col-prog">
+                <div class="col-hd"><span><i class="fas fa-spinner" style="animation:spin 2s linear infinite"></i> In
+                        Progress</span><span class="badge" id="bd-prog">0</span></div>
+                <div class="cards-list" id="list-prog" ondragover="dOv(event)" ondrop="dDr(event,'prog')"
+                    ondragleave="dLv(event)"></div>
+            </div>
+            <div class="col-wrap col-review">
+                <div class="col-hd"><span><i class="fas fa-magnifying-glass"></i> Review</span><span class="badge"
+                        id="bd-review">0</span></div>
+                <div class="cards-list" id="list-review" ondragover="dOv(event)" ondrop="dDr(event,'review')"
+                    ondragleave="dLv(event)"></div>
+            </div>
+            <div class="col-wrap col-done">
+                <div class="col-hd"><span><i class="fas fa-circle-check"></i> Done</span><span class="badge"
+                        id="bd-done">0</span></div>
+                <div class="cards-list" id="list-done" ondragover="dOv(event)" ondrop="dDr(event,'done')"
+                    ondragleave="dLv(event)"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════ FOCUS MODE ══════════ -->
+    <div id="pg-focus">
+        <button class="foc-exit" onclick="exitFocus()"><i class="fas fa-arrow-left"></i> Back to Board</button>
+        <div class="foc-name" id="focN">Task</div>
+        <div class="foc-desc" id="focD">Description</div>
+        <div class="foc-timer" id="focT">25:00</div>
+        <div class="foc-lbl" id="focL">Focus Session</div>
+        <div class="foc-dots" id="focDots"></div>
+        <div class="foc-btns">
+            <button class="btn-sm btn-add" onclick="togglePomo()"><i class="fas fa-play"></i> <span id="focST">Start
+                    Timer</span></button>
+            <button class="btn-sm" onclick="resetPomo()"><i class="fas fa-rotate-left"></i> Reset</button>
+            <button class="btn-sm" style="border-color:rgba(76,175,80,.35);color:#81c784" onclick="markFocusDone()"><i
+                    class="fas fa-check"></i> Mark Done</button>
+        </div>
+        <div class="foc-quote" id="focQ"></div>
+    </div>
+
+    <!-- ADD/EDIT MODAL -->
+    <div class="moverlay" id="taskM">
+        <div class="modal">
+            <h3 id="mTitle"><i class="fas fa-plus-circle"></i> Add New Task</h3>
+            <label>Task Title</label>
+            <input type="text" id="tTit" placeholder="e.g. Design homepage">
+            <label>Description</label>
+            <textarea id="tDes" rows="2" placeholder="Short description..."></textarea>
+            <label>Notes (optional)</label>
+            <textarea id="tNot" rows="3" placeholder="Links, ideas, details..."></textarea>
+            <label>Priority</label>
+            <div class="pri-row">
+                <div class="po sel" data-p="high" onclick="selP(this)">🔴 High</div>
+                <div class="po" data-p="med" onclick="selP(this)">🟡 Medium</div>
+                <div class="po" data-p="low" onclick="selP(this)">🔵 Low</div>
+            </div>
+            <label>Column</label>
+            <select id="tCol">
+                <option value="todo">To Do</option>
+                <option value="prog">In Progress</option>
+                <option value="review">Review</option>
+                <option value="done">Done</option>
+            </select>
+            <div class="mbtns">
+                <button class="btn-sm" onclick="closeMod('taskM')">Cancel</button>
+                <button class="btn-sm btn-add" onclick="saveTask()">Save Task</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- NOTES MODAL -->
+    <div class="moverlay" id="notesM">
+        <div class="modal">
+            <h3><i class="fas fa-note-sticky"></i> Task Notes</h3>
+            <div id="nTitle" style="font-size:.88rem;color:var(--a);margin-bottom:11px;font-weight:600"></div>
+            <textarea id="nArea" rows="7" placeholder="Write notes, links, ideas..."></textarea>
+            <div class="mbtns">
+                <button class="btn-sm" onclick="closeMod('notesM')">Close</button>
+                <button class="btn-sm btn-add" onclick="saveNotes()">Save Notes</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        const QUOTES = [
+            'Focus is the art of knowing what to ignore.',
+            'One task at a time — that\'s the superpower.',
+            'Deep work is the skill of the future.',
+            'Your future self will thank you for this session.',
+            'Progress beats perfection every time.',
+            'The phone can wait. Your goals cannot.',
+            'Distraction is the enemy of excellence.',
+            'You are closer than you think. Keep going.'
+        ];
+        const ICONS = { todo: 'fas fa-circle-dot', prog: 'fas fa-spinner', review: 'fas fa-magnifying-glass', done: 'fas fa-circle-check' };
+
+        /* ══ STATE ══ */
+        let tasks = [], nextId = 1, dragId = null, editId = null, selPri = 'high', notesId = null, focusId = null;
+        let pomoDur = 25 * 60, brkDur = 5 * 60, pomoSec = 25 * 60;
+        let pomoRun = false, pomoBreak = false, pomoRnd = 0, pomoInt = null, pomoTot = 0;
+        let streak = 0, lastDone = '';
+        let weekD = { Mon: 0, Tue: 0, Wed: 0, Thu: 0, Fri: 0, Sat: 0, Sun: 0 };
+
+        /* ══ HELPERS ══ */
+        function todayStr() { return new Date().toDateString() }
+        function yesterdayStr() { return new Date(Date.now() - 86400000).toDateString() }
+
+        /* ══ STORAGE ══ */
+        function sv() {
+            localStorage.setItem('fb2_t', JSON.stringify(tasks));
+            localStorage.setItem('fb2_id', nextId);
+            localStorage.setItem('fb2_po', pomoTot);
+            localStorage.setItem('fb2_st', streak);
+            localStorage.setItem('fb2_ld', lastDone);
+            localStorage.setItem('fb2_wk', JSON.stringify(weekD));
+        }
+        function ld() {
+            try {
+                const raw = localStorage.getItem('fb2_t');
+                tasks = raw ? JSON.parse(raw) : defTasks();
+                nextId = +localStorage.getItem('fb2_id') || tasks.length + 1;
+                pomoTot = +localStorage.getItem('fb2_po') || 0;
+                streak = +localStorage.getItem('fb2_st') || 0;
+                lastDone = localStorage.getItem('fb2_ld') || '';
+                const wk = localStorage.getItem('fb2_wk');
+                weekD = wk ? JSON.parse(wk) : { Mon: 0, Tue: 0, Wed: 0, Thu: 0, Fri: 0, Sat: 0, Sun: 0 };
+            } catch (e) { tasks = defTasks(); }
+        }
+        function defTasks() {
+            nextId = 10;
+            return [
+                { id: 1, title: 'Plan the day', desc: 'Outline goals & schedule', notes: '', col: 'todo', pri: 'high', ts: Date.now() },
+                { id: 2, title: 'Research ideas', desc: 'Gather references & data', notes: '', col: 'todo', pri: 'med', ts: Date.now() },
+                { id: 3, title: 'Organize notes', desc: 'Clean up Notion boards', notes: '', col: 'todo', pri: 'low', ts: Date.now() },
+                { id: 4, title: 'Work on project', desc: 'Core feature development', notes: '', col: 'prog', pri: 'high', ts: Date.now() },
+                { id: 5, title: 'Create content', desc: 'Write blog post draft', notes: '', col: 'prog', pri: 'med', ts: Date.now() },
+                { id: 6, title: 'Review and edit', desc: 'Proofread final doc', notes: '', col: 'review', pri: 'med', ts: Date.now() },
+                { id: 7, title: 'Morning routine', desc: 'Exercise & meditation', notes: 'Done!', col: 'done', pri: 'high', ts: Date.now() },
+                { id: 8, title: 'Reply to emails', desc: 'Inbox zero achieved', notes: '', col: 'done', pri: 'low', ts: Date.now() },
+                { id: 9, title: 'Plan next steps', desc: 'Set priorities for tomorrow', notes: '', col: 'done', pri: 'med', ts: Date.now() },
+            ];
+        }
+
+        /* ══ STREAK LOGIC (FIXED) ══
+           Rules:
+           - lastDone stores the DATE STRING of the last day a task was completed
+           - On app load: if lastDone is neither today nor yesterday → streak resets to 0
+           - On task done: if already done today → no change (streak doesn't double-count)
+                           if done yesterday or never → streak++ , lastDone = today
+                           if gap > 1 day → streak = 1 (restart), lastDone = today
+        ══════════════════════════════ */
+        function checkStreakOnLoad() {
+            if (!lastDone) return; // no activity yet — streak stays 0
+            const today = todayStr();
+            const yest = yesterdayStr();
+            // If last activity was before yesterday, streak is broken
+            if (lastDone !== today && lastDone !== yest) {
+                streak = 0;
+                sv();
+            }
+            updStreakUI();
+        }
+
+        function bumpStreak() {
+            const today = todayStr();
+            if (lastDone === today) {
+                // Already completed a task today — streak stays same, just update UI
+                updStreakUI();
+                return false; // no new streak increment
+            }
+            const yest = yesterdayStr();
+            if (lastDone === yest || lastDone === '') {
+                // Consecutive day (or first ever) — increment
+                streak++;
+            } else {
+                // Gap of more than 1 day — restart streak
+                streak = 1;
+            }
+            lastDone = today;
+            sv();
+            updStreakUI(true); // true = animate
+            return true; // streak changed
+        }
+
+        function updStreakUI(animate) {
+            // Board header badge
+            const badge = document.getElementById('streakBadge');
+            const num = document.getElementById('streakN');
+            if (num) {
+                num.textContent = streak;
+                if (streak > 0) {
+                    badge && badge.classList.add('active');
+                    if (animate) {
+                        num.classList.remove('streak-bump');
+                        void num.offsetWidth; // reflow
+                        num.classList.add('streak-bump');
+                        setTimeout(() => num.classList.remove('streak-bump'), 600);
+                    }
+                } else {
+                    badge && badge.classList.remove('active');
+                }
+            }
+            // Landing page stat
+            const ls = document.getElementById('ls-streak');
+            if (ls) ls.textContent = streak;
+        }
+
+        function recWeek() {
+            const d = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][new Date().getDay()];
+            weekD[d] = (weekD[d] || 0) + 1;
+            sv();
+        }
+
+        /* ══ PAGES ══ */
+        function goBoard() {
+            ld(); checkStreakOnLoad(); updateLandStats();
+            document.getElementById('pg-land').style.display = 'none';
+            document.getElementById('pg-board').style.display = 'block';
+            renderAll(); updPomo(); renderDots();
+        }
+        function goLand() {
+            sv();
+            document.getElementById('pg-board').style.display = 'none';
+            document.getElementById('pg-land').style.display = 'flex';
+            updateLandStats();
+        }
+        function updateLandStats() {
+            document.getElementById('ls-total').textContent = tasks.length;
+            document.getElementById('ls-done').textContent = tasks.filter(t => t.col === 'done').length;
+            document.getElementById('ls-pomo').textContent = pomoTot;
+            document.getElementById('ls-streak').textContent = streak;
+        }
+
+        /* ══ RENDER ══ */
+        function renderAll() {
+            ['todo', 'prog', 'review', 'done'].forEach(col => {
+                const list = document.getElementById('list-' + col);
+                list.innerHTML = '';
+                tasks.filter(t => t.col === col).forEach(t => {
+                    const c = document.createElement('div');
+                    c.className = `task-card pri-${t.pri}`;
+                    c.draggable = true; c.dataset.id = t.id;
+                    const pl = { high: 'HIGH', med: 'MED', low: 'LOW' }[t.pri];
+                    const isDone = col === 'done';
+                    c.innerHTML = `
+                        <div class="card-top">
+                            <div class="card-icon"><i class="${ICONS[col]}"></i></div>
+                            <span class="pri-tag">${pl}</span>
+                        </div>
+                        <div class="card-title">${t.title}</div>
+                        <div class="card-desc">${t.desc}</div>
+                        <div class="notes-prev ${t.notes ? 'show' : ''}">${t.notes ? '📝 ' + t.notes.substring(0, 55) + (t.notes.length > 55 ? '…' : '') : ''}</div>
+                        <div class="card-foot">
+                            <button class="btn-done ${isDone ? 'completed' : ''}" onclick="${isDone ? '' : 'markDone(' + t.id + ')'}">
+                                <i class="fas fa-${isDone ? 'check-double' : 'check'}"></i>
+                                ${isDone ? 'Completed' : 'Mark Done'}
+                            </button>
+                            <div style="display:flex;align-items:center;gap:6px">
+                                <div class="card-acts">
+                                    <button class="cb foc" title="Focus" onclick="startFocus(${t.id})"><i class="fas fa-bullseye"></i></button>
+                                    <button class="cb note" title="Notes" onclick="openNotes(${t.id})"><i class="fas fa-note-sticky"></i></button>
+                                    <button class="cb edit" title="Edit" onclick="openEdit(${t.id})"><i class="fas fa-pen"></i></button>
+                                    <button class="cb" title="Delete" onclick="delTask(${t.id})"><i class="fas fa-trash"></i></button>
+                                </div>
+                            </div>
+                        </div>`;
+                    c.addEventListener('dragstart', () => { dragId = t.id; setTimeout(() => c.classList.add('dragging'), 0) });
+                    c.addEventListener('dragend', () => c.classList.remove('dragging'));
+                    list.appendChild(c);
+                });
+                document.getElementById('bd-' + col).textContent = tasks.filter(t => t.col === col).length;
+            });
+            updStats(); renderWeek(); renderDots();
+        }
+
+        /* ══ MARK DONE ══ */
+        function markDone(id) {
+            const t = tasks.find(x => x.id === id);
+            if (!t || t.col === 'done') { showToast('Already done ✅'); return; }
+            t.col = 'done';
+
+            const streakIncreased = bumpStreak();
+            recWeek();
+            confetti();
+            sv();
+            renderAll();
+
+            if (streakIncreased) {
+                // Show special streak toast
+                setTimeout(() => {
+                    showToast(`🔥 ${streak} day streak! Keep it up!`, true);
+                }, 800);
+                setTimeout(() => showToast('🎉 Task completed! Great work!'), 100);
+            } else {
+                showToast('🎉 Task completed! Great work!');
+            }
+        }
+        function markFocusDone() {
+            if (focusId) markDone(focusId);
+            exitFocus();
+        }
+
+        /* ══ STATS ══ */
+        function updStats() {
+            const dn = tasks.filter(t => t.col === 'done').length;
+            const pr = tasks.filter(t => t.col === 'prog').length;
+            const tot = tasks.length;
+            const pct = tot ? Math.round(dn / tot * 100) : 0;
+            document.getElementById('progFill').style.width = pct + '%';
+            document.getElementById('progTxt').textContent = pct + '%';
+            document.getElementById('st-tot').textContent = tot;
+            document.getElementById('st-dn').textContent = dn;
+            document.getElementById('st-pr').textContent = pr;
+            document.getElementById('st-po').textContent = pomoTot;
+        }
+        function toggleStats() { document.getElementById('statsPanel').classList.toggle('open'); renderWeek() }
+        function renderWeek() {
+            const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+            const max = Math.max(...Object.values(weekD), 1);
+            document.getElementById('weekBars').innerHTML = days.map(d => `
+                <div class="wbw">
+                    <div class="wnum">${weekD[d] || 0}</div>
+                    <div class="wbbg"><div class="wbf" style="height:${Math.round((weekD[d] || 0) / max * 100)}%"></div></div>
+                    <div class="wday">${d}</div>
+                </div>`).join('');
+        }
+
+        /* ══ DRAG & DROP ══ */
+        function dOv(e) { e.preventDefault(); e.currentTarget.classList.add('drag-over') }
+        function dLv(e) { e.currentTarget.classList.remove('drag-over') }
+        function dDr(e, col) {
+            e.preventDefault(); e.currentTarget.classList.remove('drag-over');
+            if (dragId === null) return;
+            const t = tasks.find(x => x.id === dragId);
+            if (t && t.col !== col) {
+                t.col = col;
+                if (col === 'done') { bumpStreak(); recWeek(); confetti(); }
+                sv(); renderAll();
+                showToast('Moved to ' + { todo: 'To Do', prog: 'In Progress', review: 'Review', done: 'Done' }[col]);
+            }
+            dragId = null;
+        }
+
+        /* ══ ADD / EDIT ══ */
+        function openAdd() {
+            editId = null; selPri = 'high';
+            document.getElementById('mTitle').innerHTML = '<i class="fas fa-plus-circle"></i> Add New Task';
+            ['tTit', 'tDes', 'tNot'].forEach(i => document.getElementById(i).value = '');
+            document.getElementById('tCol').value = 'todo';
+            document.querySelectorAll('.po').forEach(o => { o.classList.remove('sel'); if (o.dataset.p === 'high') o.classList.add('sel') });
+            document.getElementById('taskM').classList.add('open');
+            setTimeout(() => document.getElementById('tTit').focus(), 100);
+        }
+        function openEdit(id) {
+            editId = id; const t = tasks.find(x => x.id === id);
+            document.getElementById('mTitle').innerHTML = '<i class="fas fa-pen"></i> Edit Task';
+            document.getElementById('tTit').value = t.title;
+            document.getElementById('tDes').value = t.desc;
+            document.getElementById('tNot').value = t.notes || '';
+            document.getElementById('tCol').value = t.col;
+            selPri = t.pri;
+            document.querySelectorAll('.po').forEach(o => { o.classList.remove('sel'); if (o.dataset.p === t.pri) o.classList.add('sel') });
+            document.getElementById('taskM').classList.add('open');
+        }
+        function selP(el) { selPri = el.dataset.p; document.querySelectorAll('.po').forEach(o => o.classList.remove('sel')); el.classList.add('sel') }
+        function saveTask() {
+            const tit = document.getElementById('tTit').value.trim();
+            if (!tit) { showToast('Title required!'); return }
+            const des = document.getElementById('tDes').value.trim();
+            const not = document.getElementById('tNot').value.trim();
+            const col = document.getElementById('tCol').value;
+            if (editId) {
+                const t = tasks.find(x => x.id === editId);
+                Object.assign(t, { title: tit, desc: des || 'No description', notes: not, col, pri: selPri });
+            } else {
+                tasks.push({ id: nextId++, title: tit, desc: des || 'No description', notes: not, col, pri: selPri, ts: Date.now() });
+            }
+            closeMod('taskM'); sv(); renderAll();
+            showToast(editId ? 'Task updated ✏️' : 'Task added ✅');
+        }
+        function delTask(id) {
+            tasks = tasks.filter(t => t.id !== id);
+            if (focusId === id) exitFocus();
+            sv(); renderAll(); showToast('Task deleted');
+        }
+        function closeMod(id) { document.getElementById(id).classList.remove('open') }
+
+        /* ══ NOTES ══ */
+        function openNotes(id) {
+            notesId = id; const t = tasks.find(x => x.id === id);
+            document.getElementById('nTitle').textContent = t.title;
+            document.getElementById('nArea').value = t.notes || '';
+            document.getElementById('notesM').classList.add('open');
+        }
+        function saveNotes() {
+            const t = tasks.find(x => x.id === notesId);
+            if (t) t.notes = document.getElementById('nArea').value.trim();
+            sv(); renderAll(); closeMod('notesM'); showToast('Notes saved 📝');
+        }
+
+        /* ══ POMODORO ══ */
+        function ft(s) { return `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}` }
+        function renderDots() {
+            const h = [...Array(4)].map((_, i) => `<div class="pdot${i < pomoRnd % 4 ? ' dn' : ''}"></div>`).join('');
+            const fh = [...Array(4)].map((_, i) => `<div class="fdot${i < pomoRnd % 4 ? ' dn' : ''}"></div>`).join('');
+            document.getElementById('pomoDots').innerHTML = h;
+            const fd = document.getElementById('focDots'); if (fd) fd.innerHTML = fh;
+        }
+        function updPomo() {
+            const ts = ft(pomoSec);
+            const brk = pomoBreak;
+            document.getElementById('pomoT').textContent = ts;
+            document.getElementById('pomoT').className = 'pomo-time' + (brk ? ' brk' : '');
+            document.getElementById('pomoS').textContent = brk ? '☕ Break' : '🎯 Focus';
+            document.getElementById('focT').textContent = ts;
+            document.getElementById('focT').className = 'foc-timer' + (brk ? ' brk' : '');
+            document.getElementById('focL').textContent = brk ? 'Break Time' : 'Focus Session';
+            document.getElementById('focST').textContent = pomoRun ? 'Pause' : 'Start Timer';
+            document.getElementById('pomoBtn').innerHTML = `<i class="fas fa-${pomoRun ? 'pause' : 'play'}"></i> ${pomoRun ? 'Pause' : 'Start'}`;
+            const tot = brk ? brkDur : pomoDur;
+            document.getElementById('prFg').style.strokeDashoffset = 106.8 * (1 - (tot - pomoSec) / tot);
+        }
+        function togglePomo() {
+            if (pomoRun) { clearInterval(pomoInt); pomoRun = false; }
+            else {
+                pomoRun = true;
+                pomoInt = setInterval(() => {
+                    pomoSec--; updPomo();
+                    if (pomoSec <= 0) {
+                        clearInterval(pomoInt); pomoRun = false;
+                        if (!pomoBreak) {
+                            pomoTot++; pomoRnd++; sv(); confetti();
+                            showToast('🎉 Pomodoro done! Take a break.');
+                        } else {
+                            showToast('Break over! 💪 Back to work.');
+                        }
+                        pomoBreak = !pomoBreak;
+                        pomoSec = pomoBreak ? brkDur : pomoDur;
+                        renderDots(); updStats();
+                    }
+                }, 1000);
+            }
+            updPomo();
+        }
+        function resetPomo() {
+            clearInterval(pomoInt); pomoRun = false; pomoBreak = false; pomoSec = pomoDur; updPomo();
+            document.getElementById('pomoBtn').innerHTML = '<i class="fas fa-play"></i> Start';
+        }
+
+        /* ══ FOCUS MODE ══ */
+        function startFocus(id) {
+            focusId = id; const t = tasks.find(x => x.id === id);
+            document.getElementById('focN').textContent = t.title;
+            document.getElementById('focD').textContent = t.desc;
+            document.getElementById('pomoN').textContent = t.title;
+            document.getElementById('focQ').textContent = QUOTES[Math.floor(Math.random() * QUOTES.length)];
+            renderDots(); updPomo();
+            const fp = document.getElementById('pg-focus');
+            fp.style.display = 'flex'; fp.style.animation = 'fadeUp .4s ease both';
+        }
+        function exitFocus() { document.getElementById('pg-focus').style.display = 'none' }
+
+        /* ══ CONFETTI ══ */
+        function confetti() {
+            ['#f5a623', '#fff', '#4caf50', '#ff9800', '#4fa3e8', '#b06ee0'].forEach((c, ci) => {
+                for (let i = 0; i < 6; i++) {
+                    const el = document.createElement('div');
+                    el.className = 'cp';
+                    el.style.cssText = `left:${Math.random() * 100}vw;background:${c};animation-duration:${.7 + Math.random() * 1.1}s;animation-delay:${ci * .04 + Math.random() * .2}s`;
+                    document.body.appendChild(el);
+                    el.addEventListener('animationend', () => el.remove());
+                }
+            });
+        }
+
+        /* ══ TOAST ══ */
+        function showToast(m, isStreak) {
+            const t = document.getElementById('toast');
+            t.textContent = m;
+            t.className = 'toast' + (isStreak ? ' streak-toast' : '');
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), isStreak ? 3500 : 2600);
+        }
+
+        /* ══ MODAL CLOSE ON OVERLAY ══ */
+        ['taskM', 'notesM'].forEach(id => document.getElementById(id).addEventListener('click', e => { if (e.target === e.currentTarget) closeMod(id) }));
+
+        /* ══ KEYBOARD ══ */
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Escape') { closeMod('taskM'); closeMod('notesM'); exitFocus() }
+        });
+        document.getElementById('tTit').addEventListener('keydown', e => { if (e.key === 'Enter') saveTask() });
+
+        /* ══ INIT ══ */
+        ld();
+        checkStreakOnLoad();
+        updPomo();
+        renderDots();
+        updateLandStats();
+    </script>
+</body>
+
+</html>
